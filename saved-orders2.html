@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+
+    <div style="margin-bottom: 20px;">
+        <label for="filter-date">تصفية حسب التاريخ:</label>
+        <input type="date" id="filter-date" style="padding: 5px; margin-right: 10px;">
+        <button id="apply-filter-btn" style="padding: 5px 10px; background-color: #007BFF; color: white; border: none; cursor: pointer;">
+            تطبيق الفلتر
+        </button>
+    </div>
+    
+
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button id="show-report-btn" class="report-btn">عرض التقرير</button>
+        <div id="report-container" style="display: none; margin-top: 20px; text-align: center;">
+            <input id="report-password" type="password" placeholder="أدخل الرقم السري" style="padding: 5px; width: 200px;">
+            <button id="submit-password-btn" class="report-btn">عرض التقرير</button>
+            <p id="report-result" style="margin-top: 20px; font-weight: bold;"></p>
+        </div>
+    </div>
+    
+    
+
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الطلبات السابقة</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: center;
+            margin: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        table {
+            width: 40%;
+            margin: auto;
+            border-collapse: collapse;
+            border: 1px solid #ccc;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f8f8f8;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .details-table {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>الطلبات السابقة</h1>
+
+    <!-- زر حذف الطلبات -->
+    <button id="delete-orders-btn" class="delete-btn">حذف جميع الطلبات</button>
+   
+   
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button id="edit-order-btn" class="edit-btn">تعديل الطلب</button>
+    </div>
+    
+    <!-- الجدول الرئيسي -->
+    <table id="main-orders-table">
+        <thead>
+            <tr>
+                <th>رقم الطلب</th>
+                <th>الإجمالي</th>
+                <th>تاريخ الطلب</th>
+                <th>وقت الطلب</th>
+                <th>حذف الطلب</th>
+
+            </tr>
+        </thead>
+        <tbody id="main-orders-table-body">
+            <!-- سيتم ملء الطلبات الرئيسية هنا -->
+        </tbody>
+    </table>
+
+    <!-- تفاصيل الطلبات -->
+    <div id="orders-details-container">
+        <!-- سيتم إنشاء تفاصيل الطلبات هنا -->
+    </div>
+
+    <script>
+
+        // وظيفة لتحميل الطلبات بناءً على التاريخ المحدد
+function filterOrdersByDate() {
+    const selectedDate = document.getElementById('filter-date').value;
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const mainTableBody = document.getElementById('main-orders-table-body');
+    const detailsContainer = document.getElementById('orders-details-container');
+
+    // مسح المحتويات السابقة
+    mainTableBody.innerHTML = '';
+    detailsContainer.innerHTML = '';
+
+    // تصفية الطلبات بناءً على التاريخ
+    const filteredOrders = orders.filter(order => {
+        const orderDate = new Date(order.timestamp).toLocaleDateString('en-CA'); // تنسيق التاريخ للمقارنة
+        return orderDate === selectedDate;
+    });
+
+    if (filteredOrders.length === 0) {
+        alert("لا توجد طلبات لهذا التاريخ.");
+        return;
+    }
+
+    // عرض الطلبات المصفاة
+    filteredOrders.forEach(order => {
+        // 1. إضافة الطلب إلى الجدول الرئيسي
+        const mainRow = document.createElement('tr');
+
+        // رقم الطلب
+        const orderNumberCell = document.createElement('td');
+        orderNumberCell.textContent = order.orderNumber;
+
+        // الإجمالي
+        const totalPriceCell = document.createElement('td');
+        totalPriceCell.textContent = `${order.totalPrice} ريال`;
+
+        // تاريخ الطلب
+        const dateCell = document.createElement('td');
+        const orderDate = new Date(order.timestamp);
+        dateCell.textContent = orderDate.toLocaleDateString();
+
+        // وقت الطلب
+        const timeCell = document.createElement('td');
+        timeCell.textContent = orderDate.toLocaleTimeString();
+
+        mainRow.appendChild(orderNumberCell);
+        mainRow.appendChild(totalPriceCell);
+        mainRow.appendChild(dateCell);
+        mainRow.appendChild(timeCell);
+        mainTableBody.appendChild(mainRow);
+
+        // 2. إنشاء جدول تفاصيل الطلب
+        const detailsTable = document.createElement('table');
+        detailsTable.classList.add('details-table');
+
+        const detailsHeader = `
+            <thead>
+                <tr>
+                    <th>العدد</th>
+                    <th>المنتج</th>
+                    <th>السعر</th>
+                </tr>
+            </thead>
+        `;
+
+        const detailsBody = document.createElement('tbody');
+        order.orders.forEach(item => {
+            const detailsRow = document.createElement('tr');
+
+            // العدد
+            const countCell = document.createElement('td');
+            countCell.textContent = item.count;
+
+            // المنتج
+            const productCell = document.createElement('td');
+            productCell.textContent = item.product;
+
+            // السعر
+            const priceCell = document.createElement('td');
+            priceCell.textContent = item.price;
+
+            detailsRow.appendChild(countCell);
+            detailsRow.appendChild(productCell);
+            detailsRow.appendChild(priceCell);
+            detailsBody.appendChild(detailsRow);
+        });
+
+        // إضافة صف الإجمالي في نهاية التفاصيل
+        const totalRow = document.createElement('tr');
+        const totalLabelCell = document.createElement('td');
+        totalLabelCell.colSpan = 2;
+        totalLabelCell.textContent = 'الإجمالي';
+        const totalValueCell = document.createElement('td');
+        totalValueCell.textContent = `${order.totalPrice} ريال`;
+
+        totalRow.appendChild(totalLabelCell);
+        totalRow.appendChild(totalValueCell);
+        detailsBody.appendChild(totalRow);
+
+        // دمج الجدول
+        detailsTable.innerHTML = detailsHeader;
+        detailsTable.appendChild(detailsBody);
+
+        // إضافة جدول التفاصيل إلى الحاوية
+        const orderDetailsTitle = document.createElement('h3');
+        orderDetailsTitle.textContent = `تفاصيل الطلب رقم ${order.orderNumber}`;
+        detailsContainer.appendChild(orderDetailsTitle);
+        detailsContainer.appendChild(detailsTable);
+    });
+}
+
+// ربط زر الفلتر بالوظيفة
+document.getElementById('apply-filter-btn').addEventListener('click', filterOrdersByDate);
+
+        // تحميل الطلبات من Local Storage
+        function loadOrders() {
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const mainTableBody = document.getElementById('main-orders-table-body');
+    const detailsContainer = document.getElementById('orders-details-container');
+
+    // مسح أي بيانات موجودة مسبقًا
+    mainTableBody.innerHTML = '';
+    detailsContainer.innerHTML = '';
+
+    orders.forEach((order, index) => {
+        // 1. إضافة الطلب إلى الجدول الرئيسي
+        const mainRow = document.createElement('tr');
+
+        // رقم الطلب
+        const orderNumberCell = document.createElement('td');
+        orderNumberCell.textContent = order.orderNumber; // قراءة رقم الطلب الصحيح
+
+        // الإجمالي
+        const totalPriceCell = document.createElement('td');
+        totalPriceCell.textContent = `${order.totalPrice} ريال`;
+
+        // تاريخ الطلب
+        const dateCell = document.createElement('td');
+        const orderDate = new Date(order.timestamp); // تحويل الطابع الزمني إلى تاريخ
+        dateCell.textContent = orderDate.toLocaleDateString();
+
+        // وقت الطلب
+        const timeCell = document.createElement('td');
+        timeCell.textContent = orderDate.toLocaleTimeString();
+
+        // عمود حذف الطلب
+        const deleteCell = document.createElement('td');
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'حذف';
+        deleteButton.classList.add('delete-btn');
+        deleteButton.onclick = () => deleteOrder(index);
+
+        deleteCell.appendChild(deleteButton);
+
+        // إضافة الأعمدة إلى الصف
+        mainRow.appendChild(orderNumberCell);
+        mainRow.appendChild(totalPriceCell);
+        mainRow.appendChild(dateCell);
+        mainRow.appendChild(timeCell);
+        mainRow.appendChild(deleteCell);
+
+        // إضافة الصف إلى الجدول
+        mainTableBody.appendChild(mainRow);
+
+        // 2. إنشاء تفاصيل الطلب
+        const detailsTable = document.createElement('table');
+        detailsTable.classList.add('details-table');
+
+        const detailsHeader = `
+            <thead>
+                <tr>
+                    <th>العدد</th>
+                    <th>المنتج</th>
+                    <th>السعر</th>
+                </tr>
+            </thead>
+        `;
+
+        const detailsBody = document.createElement('tbody');
+        order.orders.forEach(item => {
+            const detailsRow = document.createElement('tr');
+
+            const countCell = document.createElement('td');
+            countCell.textContent = item.count;
+
+            const productCell = document.createElement('td');
+            productCell.textContent = item.product;
+
+            const priceCell = document.createElement('td');
+            priceCell.textContent = item.price;
+
+            detailsRow.appendChild(countCell);
+            detailsRow.appendChild(productCell);
+            detailsRow.appendChild(priceCell);
+            detailsBody.appendChild(detailsRow);
+        });
+
+        detailsTable.innerHTML = detailsHeader;
+        detailsTable.appendChild(detailsBody);
+
+        const orderDetailsTitle = document.createElement('h3');
+        orderDetailsTitle.textContent = `تفاصيل الطلب رقم ${order.orderNumber}`;
+        detailsContainer.appendChild(orderDetailsTitle);
+        detailsContainer.appendChild(detailsTable);
+    });
+}
+
+        // وظيفة لحذف جميع الطلبات
+        function deleteAllOrders() {
+            const confirmation = confirm("سيتم حذف جميع الطلبات السابقة. هل أنت متأكد؟");
+            if (confirmation) {
+                // مسح الطلبات من Local Storage
+                localStorage.removeItem('orders');
+
+                // إعادة تحميل الصفحة لتحديث العرض
+                alert("تم حذف جميع الطلبات بنجاح!");
+                location.reload();
+            }
+        }
+
+        // إضافة حدث عند الضغط على زر الحذف
+        document.getElementById('delete-orders-btn').addEventListener('click', deleteAllOrders);
+
+        // استدعاء تحميل الطلبات عند فتح الصفحة
+        loadOrders();
+ 
+        function deleteOrder(index) {
+    const confirmation = confirm("هل أنت متأكد أنك تريد حذف هذا الطلب؟");
+    if (confirmation) {
+        const orders = JSON.parse(localStorage.getItem('orders')) || [];
+        orders.splice(index, 1); // حذف الطلب من المصفوفة
+        localStorage.setItem('orders', JSON.stringify(orders)); // تحديث localStorage
+        location.reload(); // إعادة تحميل الصفحة لتحديث الجدول
+    }
+}
+
+    
+
+
+
+
+const REPORT_PASSWORD = "1234"; // الرقم السري المعرف مسبقًا
+document.getElementById('show-report-btn').addEventListener('click', () => {
+    // طلب الرقم السري من المستخدم
+    const passwordInput = prompt("يرجى إدخال الرقم السري لعرض التقرير:");
+
+    if (passwordInput === REPORT_PASSWORD) {
+        // إذا كان الرقم السري صحيحًا
+        const orders = JSON.parse(localStorage.getItem('orders')) || [];
+        const totalOrders = orders.length;
+        const totalAmount = orders.reduce((sum, order) => sum + parseFloat(order.totalPrice || 0), 0);
+
+        // عرض التقرير
+        alert(`إجمالي عدد الطلبات: ${totalOrders}\nإجمالي المبالغ: ${totalAmount.toFixed(2)} ريال`);
+    } else {
+        // إذا كان الرقم السري خاطئًا
+        alert("الرقم السري غير صحيح! لا يمكنك عرض التقرير.");
+    }
+});
+
+
+
+
+
+document.getElementById('edit-order-btn').addEventListener('click', () => {
+    // طلب رقم الطلب من المستخدم
+    const orderNumber = prompt("أدخل رقم الطلب الذي تريد تعديله:");
+    if (!orderNumber) {
+        alert("لم يتم إدخال رقم طلب.");
+        return;
+    }
+
+    // استرداد الطلبات من التخزين المحلي
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const order = orders.find(order => order.orderNumber === parseInt(orderNumber));
+
+    if (!order) {
+        alert("رقم الطلب غير موجود!");
+        return;
+    }
+
+    // تخزين الطلب للتعديل في الصفحة الرئيسية
+    localStorage.setItem('editOrder', JSON.stringify(order));
+    alert(`تم جلب الطلب رقم ${orderNumber} إلى الصفحة الرئيسية لتعديله.`);
+    window.location.href = 'index2.html'; // الانتقال إلى الصفحة الرئيسية
+});
+
+
+
+
+
+ </script>
+</body>
+</html>
+
+
