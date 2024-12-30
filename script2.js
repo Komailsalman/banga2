@@ -318,15 +318,15 @@ function printDirectly() {
 console.log("Cash Amount:", cashAmount);
 console.log("Payment Method:", paymentMethod);
 
-document.getElementById("print-btn").addEventListener("click", () => {
-    updateMadaPayment(); // تحديث القيم
-    saveOrdersToLocalStorage(); // حفظ الطلبات
+    
     window.print(); // طباعة
 });
 
         // استعادة المحتوى الأصلي وتنفيذ الخطوات الأخرى
         document.body.innerHTML = originalContent;
-        updateOrderNumber();
+    updateMadaPayment(); // تحديث القيم
+    saveOrdersToLocalStorage(); // حفظ الطلبات   
+    updateOrderNumber();
         clearTable();
         
     };
