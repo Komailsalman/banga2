@@ -714,24 +714,26 @@ function updateRow(row, unitPrice, action) {
 }
 async function sendCutCommand() {
     try {
-        const devices = await navigator.usb.getDevices();
+        const devices = await navigator.usb.requestDevice({ filters: [] });
         if (devices.length > 0) {
             const printerDevice = devices[0];
             await printerDevice.open();
             await printerDevice.selectConfiguration(1);
             await printerDevice.claimInterface(0);
+
             const cutCommand = new Uint8Array([0x1B, 0x69]); // أمر القطع ESC i
             await printerDevice.transferOut(1, cutCommand);
+
             console.log("تم إرسال أمر القطع بنجاح.");
-            await printerDevice.releaseInterface(0);
             await printerDevice.close();
         } else {
-            console.error("لم يتم العثور على طابعة.");
+            console.log("لم يتم العثور على أجهزة.");
         }
     } catch (error) {
-        console.error("فشل في إرسال أمر القطع:", error);
+        console.error("حدث خطأ أثناء إرسال أمر القطع:", error);
     }
 }
+
 
 document.getElementById('print-order-btn').addEventListener('click', () => {
     Swal.fire({
