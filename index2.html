@@ -11,6 +11,12 @@
     <link rel="stylesheet" href="styles2.css">
     
 </head>
+<!-- رابط CSS لـ SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<!-- رابط JavaScript لـ SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <body>
     <div class="full-width-message">
         نظام كاشير عصيرات بنقا - الحسا تركض
@@ -23,18 +29,18 @@
 
         <div class="buttons-container">
             <table class="buttons-table">
-               
+                <button onclick="sendCutCommand()">قطع الورق</button>
+
+                
                 <th colspan="8" id="custom-row"> الخلطات </th>  
                     </tr>
                     <tr>
                         <td><button class="add-btn" onclick="addToTable('خلطة بنقا', 18)">خلطة بنقا</button></td>
-                        <td><button class="add-btn" onclick="addToTable('فبراير', 17)">فبراير</button></td>
                         <td><button class="add-btn" onclick="addToTable('عرايسي', 17)">عرايسي</button></td>
                         <td><button class="add-btn" onclick="addToTable('أمواج', 17)">أمواج</button></td>
                         <td><button class="add-btn" onclick="addToTable('عوار قلب', 17)">عوار قلب</button></td>
                         <td><button class="add-btn" onclick="addToTable('باور', 17)">باور</button></td>
                         <td><button class="add-btn" onclick="addToTable('منقا افوكادو', 17)">منقا افوكادو</button></td>
-                        <td><button class="add-btn" onclick="addToTable('غروب', 17)">غروب</button></td>
                     </tr>
                     <tr>
                 <tr>
@@ -44,25 +50,23 @@
         
                 </tr>
                 <tr>
+                        <td><button class="add-btn" onclick="addToTable('نعنشة', 16)">نعنشة</button></td>
                         <td><button class="add-btn" onclick="addToTable('حامض حلو', 16)">حامض حلو</button></td>
                         <td><button class="add-btn" onclick="addToTable('ليمون نعناع', 14)">ليمون نعناع</button></td>
                         <td><button class="add-btn" onclick="addToTable('منقا اناناس', 16)">منقا اناناس</button></td>
                         <td><button class="add-btn" onclick="addToTable('برتقال أناناس', 16)">برتقال أناناس</button></td>
-                        <td><button class="add-btn" onclick="addToTable('أناناس رمان', 16)">أناناس رمان</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر برتقال', 14)">شمندر برتقال</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر رمان', 14)">شمندر رمان</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر برتقال رمان', 15)">شمندر برتقال رمان</button></td>
+                        <td><button class="add-btn" onclick="addToTable('رمان أناناس ', 16)">رمان أناناس</button></td>
+                        <td><button class="add-btn" onclick="addToTable('برتقال رمان', 14)">برتقال رمان</button></td>
+                        <td><button class="add-btn" onclick="addToTable('مانجو فراولة', 17)">مانجو فراولة</button></td>
+
+
                     </tr>
             
-               
-
-
-
                     <tr>
+                        <td><button class="add-btn" onclick="addToTable('شمندر برتقال رمان', 15)">شمندر برتقال رمان</button></td>
+                        <td><button class="add-btn" onclick="addToTable('شمندر رمان', 14)">شمندر رمان</button></td>
+                        <td><button class="add-btn" onclick="addToTable('شمندر برتقال', 14)">شمندر برتقال</button></td>
                         <td><button class="add-btn" onclick="addToTable('شمندر تفاح', 15)">شمندر تفاح</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر عنب', 15)">شمندر عنب</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر جزر', 14)">شمندر جزر</button></td>
-                        <td><button class="add-btn" onclick="addToTable('برتقال رمان', 14)">برتقال رمان</button></td>
                         <tr>
                             <th colspan="8"id="custom-row">فواكه وآيسكريم  </th>  
                     </tr>
@@ -71,11 +75,11 @@
                         <td><button class="add-btn" onclick="addToTable('فراولة مكسيكي', 15)">فراولة مكسيكي</button></td>
                         <td><button class="add-btn" onclick="addToTable('مانجو مكسيكي', 18)">مانجو مكسيكي</button></td>
                         <td><button class="add-btn" onclick="addToTable('آيسكريم فانيلا', 9)">آيسكريم فانيلا</button></td>
-                        <td><button class="add-btn" onclick="addToTable('بركان مكس )', 19)">بركان مكس </button></td>
+                        <td><button class="add-btn" onclick="addToTable('بركان مكس ', 19)">بركان مكس </button></td>
                         <td><button class="add-btn" onclick="addToTable('بركان البنقا', 18)">بركان البنقا</button></td>
                         <td><button class="add-btn" onclick="addToTable('بركان الفراولة', 18)">بركان الفراولة</button></td>
                     
-                        <td><button class="add-btn" onclick="addToTable('فواكه مشكلة كبير', 45)">فواكه مشكلة كبير</button></td>
+                        <td><button class="add-btn" onclick="addToTable('فواكه مشكلة كبير', 29)">فواكه مشكلة كبير</button></td>
                         <td><button class="add-btn" onclick="addToTable('فواكه مشكلة صغير', 21)">فواكه مشكلة صغير</button></td>
 
                         <tr>
@@ -103,9 +107,12 @@
                         <tr>
                             
 
-                            <td><button class="add-btn" onclick="addCustomPriceProduct()"  >
-                                إضافة 
-                            </button> 
+                        
+                            <td><button onclick="addCustomPriceProduct1()">إضافة منتج مخصص</button></td>
+
+                            <tr>
+
+                            
                            
                     <!-- القسم الرئيسي 
 
@@ -131,9 +138,9 @@
                     </tr>
                     <tr>
                         <th>العدد</th> 
-                        <th>المنتج</th>
+                        <th class="product-name">المنتج</th>
                         <th>السعر</th>
-                        <th class="no-print">حذف</th>
+                        <th class="no-print">+ / - </th>
                     </tr>
                 </thead>
                 
@@ -149,8 +156,8 @@
             </table>
            
             <td><button class="clear-btn" onclick="clearTable()"> حذف كامل الطلب </button></td>
-            <td><button class="print-btn" onclick="printAndClear()"> دفع </button></td>
-            <button onclick="printDirectly()">طباعة</button>
+            <!-- كاش  <td><button class="print-btn" onclick="printAndClear()"> دفع </button></td>-->
+            <td>  <button class="print-btn" onclick="printDirectly()">دفع</button> </td>
             
             
             
@@ -183,7 +190,13 @@
             </div>
 
             
+            <div>
+                <button id="print-order-btn">طباعة طلب سابق</button>
+            </div>
             
+            
+            
+
 
             
         </ul>
