@@ -232,13 +232,15 @@ function printDirectly() {
 
         document.body.innerHTML = printContent;
 
-        // الطباعة مرة واحدة فقط
-        window.print();
         
+document.getElementById("print-btn").addEventListener("click", () => {
+    updateMadaPayment(); // تحديث القيم
+    saveOrdersToLocalStorage(); // حفظ الطلبات
+    window.print(); // طباعة
+});
 
         // استعادة المحتوى الأصلي وتنفيذ الخطوات الأخرى
         document.body.innerHTML = originalContent;
-        saveOrdersToLocalStorage();
         updateOrderNumber();
         clearTable();
         
