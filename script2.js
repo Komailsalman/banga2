@@ -271,7 +271,7 @@ function printDirectly() {
         });
     }
 
-    const paymentMethod = `
+    const paymentDetails = `
         <p><strong>طريقة الدفع:</strong></p>
         ${madaAmount > 0 ? `<p>مدى: ${madaAmount} ريال</p>` : ''}
         ${cashAmount > 0 ? `<p>كاش: ${cashAmount} ريال</p>` : ''}
@@ -301,7 +301,7 @@ function printDirectly() {
                 </div>
                 ${printTable.outerHTML}
                 <div style="text-align: center; margin-top: 20px;">
-                    ${paymentMethod}
+                    ${paymentDetails}
                 </div>
                 <div style="text-align: center; margin-top: 20px;">
                     <p>شكراً لتعاملكم معنا</p>
