@@ -865,3 +865,23 @@ function printOrderByNumber(orderNumber) {
         });
     };
 }
+
+
+
+async function requestDevice() {
+    try {
+        const device = await navigator.usb.requestDevice({
+            filters: [] // يمكن تعديل الفلاتر حسب الطابعة
+        });
+
+        if (device) {
+            console.log("تم العثور على الجهاز:", device);
+        } else {
+            console.error("لم يتم العثور على جهاز.");
+        }
+    } catch (error) {
+        console.error("حدث خطأ أثناء طلب الجهاز:", error);
+    }
+}
+
+requestDevice();
