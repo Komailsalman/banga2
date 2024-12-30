@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الطلبات المحذوفة</title>
+    <link rel="stylesheet" href="styles2.css">
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script2.js"></script>
+
+<header>
+    <h1>الطلبات المحذوفة</h1>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button onclick="navigateTo('saved-orders2.html')" class="nav-btn">العودة إلى الطلبات المحفوظة</button>
+        <button onclick="navigateTo('index2.html')" class="nav-btn">العودة إلى الرئيسية</button>
+    </div>
+</header>
+
+    <h1 style="text-align: center;">الطلبات المحذوفة</h1>
+    <table id="deleted-orders-table">
+        <thead>
+            <tr>
+                <th>رقم الطلب</th>
+                <th>المنتجات</th>
+                <th>طريقة الدفع</th>
+                <th>الإجمالي</th>
+                <th>التاريخ</th>
+                <th>عرض التفاصيل</th> <!-- عمود عرض التفاصيل -->
+        <th>تاريخ النقل</th> <!-- عمود تاريخ النقل -->
+        <th>حذف</th> <!-- العمود الجديد -->
+
+            </tr>
+        </thead>
+        <tbody id="deleted-orders-body">
+            <!-- الطلبات المحذوفة ستُعرض هنا -->
+        </tbody>
+    </table>
+    <script src="deleted-orders.js"></script>
+</body>
+</html>
