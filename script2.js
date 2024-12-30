@@ -125,6 +125,88 @@ function addToTable(productName, unitPrice) {
 
 
 
+function getPaymentMethod() {
+    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
+    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+
+    if (madaAmount > 0 && cashAmount > 0) {
+        return `مدى: ${madaAmount} ريال، كاش: ${cashAmount} ريال`;
+    } else if (madaAmount > 0) {
+        return `مدى: ${madaAmount} ريال`;
+    } else if (cashAmount > 0) {
+        return `كاش: ${cashAmount} ريال`;
+    } else {
+        return "غير محدد";
+    }
+}
+
+
+function testPaymentValues() {
+    const madaAmount = document.getElementById('mada-amount') ? parseFloat(document.getElementById('mada-amount').value) || 0 : 0;
+    const cashAmount = document.getElementById('cash-amount') ? parseFloat(document.getElementById('cash-amount').value) || 0 : 0;
+
+    console.log(`Mada Amount: ${madaAmount}`);
+    console.log(`Cash Amount: ${cashAmount}`);
+
+    let paymentMethod = "غير محدد";
+    if (madaAmount > 0 && cashAmount > 0) {
+        paymentMethod = `مدى: ${madaAmount} ريال، كاش: ${cashAmount} ريال`;
+    } else if (madaAmount > 0) {
+        paymentMethod = `مدى: ${madaAmount} ريال`;
+    } else if (cashAmount > 0) {
+        paymentMethod = `كاش: ${cashAmount} ريال`;
+    }
+
+    console.log(`Payment Method: ${paymentMethod}`);
+    return paymentMethod;
+}
+
+
+
+
+function updateMadaPayment() {
+    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
+    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
+
+    if (madaAmount > totalAmount) {
+        Swal.fire({
+            icon: 'error', // أيقونة خطأ
+            title: 'خطأ!',
+            text: 'المبلغ المدخل في مدى لا يمكن أن يكون أكبر من الإجمالي.',
+            confirmButtonText: 'حسناً', // نص زر التأكيد
+            timer: 3000, // اختياري: يغلق التنبيه بعد 3 ثوانٍ
+            timerProgressBar: true // عرض شريط تقدم الوقت
+        });
+                document.getElementById('mada-amount').value = '';
+        document.getElementById('cash-amount').value = '';
+    } else {
+        document.getElementById('cash-amount').value = (totalAmount - madaAmount);
+    }
+}
+
+
+
+
+function updateCashPayment() {
+    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
+    const remainingDiv = document.getElementById('cash-remaining');
+
+    if (cashAmount > totalAmount) {
+        const remaining = (cashAmount - totalAmount);
+        remainingDiv.textContent = `المتبقي للعميل: ${remaining} ريال`;
+        document.getElementById('mada-amount').value = '0';
+    } else {
+        remainingDiv.textContent = ''; // إخفاء النص إذا كان المبلغ صحيحًا
+        document.getElementById('mada-amount').value = (totalAmount - cashAmount);
+    }
+}
+
+
+
+
+
+
 
 function clearTable() {
     const tableBody = document.getElementById('product-table-body');
@@ -232,7 +314,10 @@ function printDirectly() {
 
         document.body.innerHTML = printContent;
 
-        
+        console.log("Mada Amount:", madaAmount);
+console.log("Cash Amount:", cashAmount);
+console.log("Payment Method:", paymentMethod);
+
 document.getElementById("print-btn").addEventListener("click", () => {
     updateMadaPayment(); // تحديث القيم
     saveOrdersToLocalStorage(); // حفظ الطلبات
@@ -286,44 +371,6 @@ orders.forEach((order, index) => {
 
     tableBody.appendChild(row);
 });
-
-
-
-function getPaymentMethod() {
-    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
-    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
-
-    if (madaAmount > 0 && cashAmount > 0) {
-        return `مدى: ${madaAmount} ريال، كاش: ${cashAmount} ريال`;
-    } else if (madaAmount > 0) {
-        return `مدى: ${madaAmount} ريال`;
-    } else if (cashAmount > 0) {
-        return `كاش: ${cashAmount} ريال`;
-    } else {
-        return "غير محدد";
-    }
-}
-
-
-function testPaymentValues() {
-    const madaAmount = document.getElementById('mada-amount') ? parseFloat(document.getElementById('mada-amount').value) || 0 : 0;
-    const cashAmount = document.getElementById('cash-amount') ? parseFloat(document.getElementById('cash-amount').value) || 0 : 0;
-
-    console.log(`Mada Amount: ${madaAmount}`);
-    console.log(`Cash Amount: ${cashAmount}`);
-
-    let paymentMethod = "غير محدد";
-    if (madaAmount > 0 && cashAmount > 0) {
-        paymentMethod = `مدى: ${madaAmount} ريال، كاش: ${cashAmount} ريال`;
-    } else if (madaAmount > 0) {
-        paymentMethod = `مدى: ${madaAmount} ريال`;
-    } else if (cashAmount > 0) {
-        paymentMethod = `كاش: ${cashAmount} ريال`;
-    }
-
-    console.log(`Payment Method: ${paymentMethod}`);
-    return paymentMethod;
-}
 
 
 
@@ -498,48 +545,6 @@ function deleteProductRow(button) {
     row.remove();
 }
 
-
-
-
-
-
-function updateMadaPayment() {
-    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
-    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
-
-    if (madaAmount > totalAmount) {
-        Swal.fire({
-            icon: 'error', // أيقونة خطأ
-            title: 'خطأ!',
-            text: 'المبلغ المدخل في مدى لا يمكن أن يكون أكبر من الإجمالي.',
-            confirmButtonText: 'حسناً', // نص زر التأكيد
-            timer: 3000, // اختياري: يغلق التنبيه بعد 3 ثوانٍ
-            timerProgressBar: true // عرض شريط تقدم الوقت
-        });
-                document.getElementById('mada-amount').value = '';
-        document.getElementById('cash-amount').value = '';
-    } else {
-        document.getElementById('cash-amount').value = (totalAmount - madaAmount);
-    }
-}
-
-
-
-
-function updateCashPayment() {
-    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
-    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
-    const remainingDiv = document.getElementById('cash-remaining');
-
-    if (cashAmount > totalAmount) {
-        const remaining = (cashAmount - totalAmount);
-        remainingDiv.textContent = `المتبقي للعميل: ${remaining} ريال`;
-        document.getElementById('mada-amount').value = '0';
-    } else {
-        remainingDiv.textContent = ''; // إخفاء النص إذا كان المبلغ صحيحًا
-        document.getElementById('mada-amount').value = (totalAmount - cashAmount);
-    }
-}
 
 
 
