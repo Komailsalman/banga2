@@ -18,22 +18,32 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <body>
-    <div class="full-width-message">
-        نظام كاشير عصيرات بنقا - الحسا تركض
+    <div class="full-width-message" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; color: white; height: 60px; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;">
+       
+
+        <img src="https://i.postimg.cc/g2GmHSFp/bangalogo.png" alt="شعار بنقا" style="height: 60px; filter: invert(100%);position: absolute; right: 400px;">
+    
+
+        <span style="font-size: 25px; font-weight:100; margin: 0 auto; text-align: center;">نظام كاشير عصيرات بنقا - الحسا تركض</span>
+        <button onclick="sendCutCommand()" class="custom-button">قطع الورق</button>
+<button onclick="printLastOrder()" class="custom-button">قطع الورق والطباعة</button>
+<button onclick="window.location.href='saved-orders2.html'" class="custom-button">عرض الطلبات السابقة</button>
+<button id="print-order-btn" class="custom-button">طباعة طلب سابق</button>
+<button onclick="addCustomPriceProduct1()" class="custom-button">إضافة منتج مخصص</button>
+<button onclick="printDirectlyWithDate()" class="custom-button">تسجيل وطباعة طلب بتاريخ محدد</button>
+
     </div>
     
+
+    
     <header>
-        <div class="container">
+        <div style="margin-top: 90px;" class="container">
             <!-- القسم الرئيسي -->
             <div class="main-content">
 
         <div class="buttons-container">
             <table class="buttons-table">
-                
-
-
-                
-                <th colspan="8" id="custom-row"> الخلطات </th>  
+                <th colspan="8" id="custom-row" style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;"> الخلطات </th>  
                     </tr>
                     <tr>
                         <td><button class="add-btn" onclick="addToTable('خلطة بنقا', 18)">خلطة بنقا</button></td>
@@ -46,7 +56,7 @@
                     <tr>
                 <tr>
                     <tr>
-                        <th colspan="8" id="custom-row">المنعشة</th>
+                        <th colspan="8" id="custom-row" style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;">المنعشة</th>
                        
         
                 </tr>
@@ -69,7 +79,7 @@
                         <td><button class="add-btn" onclick="addToTable('شمندر برتقال', 14)">شمندر برتقال</button></td>
                         <td><button class="add-btn" onclick="addToTable('شمندر تفاح', 15)">شمندر تفاح</button></td>
                         <tr>
-                            <th colspan="8"id="custom-row">فواكه وآيسكريم  </th>  
+                            <th colspan="8"id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;">فواكه وآيسكريم  </th>  
                     </tr>
                     <tr>
 
@@ -84,7 +94,7 @@
                         <td><button class="add-btn" onclick="addToTable('فواكه مشكلة صغير', 21)">فواكه مشكلة صغير</button></td>
 
                         <tr>
-                            <th colspan="8" id="custom-row">عصاير طبيعية   </th>  
+                            <th colspan="8" id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;">عصاير طبيعية   </th>  
                     </tr>
                     <tr>
 
@@ -108,8 +118,22 @@
                         <tr>
                             
 
-                        
-                            <td><button onclick="addCustomPriceProduct1()">إضافة منتج مخصص</button></td>
+                            <th colspan="4" id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 10px;"  >مشروبات ساخنة   </th>  
+                            <th colspan="4" id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 10px;"  >مشروبات باردة   </th>  
+                        </tr>
+                        <tr>
+    
+                            <td><button class="add-btn" onclick="addToTable('شوكولاته ساخنة', 12)">شوكولاته ساخنة</button></td>
+                            <td><button class="add-btn" onclick="addToTable('سحلب', 11)">سحلب</button></td>
+                            <td><button class="add-btn" onclick="addToTable('محلبيه', 11)">محلبيه</button></td>
+                            <td></td>
+
+
+                            <td><button class="add-btn" onclick="addToTable('كركديه سادة', 14)">كركديه سادة</button></td>
+                            <td><button class="add-btn" onclick="addToTable('كركديه بالنعناع', 15)">كركديه بالنعناع</button></td>
+                            <td><button class="add-btn" onclick="addToTable('شاي بارد بالمانجو', 14)">شاي بارد بالمانجو</button></td>
+                            <td><button class="add-btn" onclick="addToTable('شاي بارد بالخوخ', 14)">شاي بارد بالخوخ</button></td>
+                          
 
                             <tr>
 
@@ -127,20 +151,21 @@
         </div>
     </div>
 
-    <aside class="sidebar">
+    <aside class="sidebar" >
         <h2>الملخص</h2>
-        <button onclick="resetOrderNumber()">تجديد رقم الطلب</button>
+      <!-- القسم الرئي  <button onclick="resetOrderNumber()">تجديد رقم الطلب</button>     -->
 
         <ul>
-            <table id="order-table">
+            <table id="order-table"class="custom-order-table">
                 <thead>
                     <tr>
-                        <th colspan="4">رقم الطلب: <span id="order-number">1</span></th>
+                        <th colspan="4" style ="background-color: #dadada;">رقم الطلب: <span id="order-number">1</span></th>
                     </tr>
                     <tr>
                         <th>العدد</th> 
                         <th class="product-name">المنتج</th>
                         <th>السعر</th>
+                        
                         <th class="no-print">+ / - </th>
                     </tr>
                 </thead>
@@ -166,37 +191,34 @@
             <div class="payment-options" style="text-align: center;">
                 <h3>طريقة الدفع</h3>
             
-                <!-- مدى -->
-                <div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
-                    <label style="font-size: 18px; margin-right: 10px; font-weight: bolder;">مدى:</label>
-                    <input type="number" id="mada-amount" placeholder="أدخل مبلغ مدى" oninput="updateMadaPayment()" 
-                           style="width: 40%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
-                    <button onclick="setFullAmountToMada()" 
-                            style="padding: 10px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; width: 90px; height: 40px;">
-                        كامل المبلغ
-                    </button>
-                </div>
-            
-                <!-- كاش -->
-                <div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
-                    <label style="font-size: 18px; margin-right: 10px; font-weight: bolder;">كاش:</label>
-                    <input type="number" id="cash-amount" placeholder="أدخل مبلغ كاش" oninput="updateCashPayment()" 
-                           style="width: 40%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
-                    <button onclick="setFullAmountToCash()" 
-                            style="padding: 10px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; width: 90px; height: 40px;">
-                        كامل المبلغ
-                    </button>
-                </div>
-                <div id="cash-remaining" style="text-align: center; font-size: 16px; color: green; margin-top: 10px;"></div>
-            </div>
+         <!-- مدى -->
+<div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
+    <label style="font-size: 18px; margin-right: 10px; font-weight: bolder;">مدى:</label>
+    <input type="text" id="mada-amount" placeholder="أدخل مبلغ مدى"
+    autocomplete="off" 
+    style="width: 40%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
+    <button onclick="setFullAmountToMada()"
+            style="padding: 10px; font-size: 16px; background-color: #3da3ba; color: white; border: none; border-radius: 5px; cursor: pointer; width: 90px; height: 60px; text-align: center; line-height: 20px;">
+        كامل<br>المبلغ
+    </button>
+</div>
+
+<!-- كاش -->
+<div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
+    <label style="font-size: 18px; margin-right: 10px; font-weight: bolder;">كاش:</label>
+    <input type="text" id="cash-amount" placeholder="أدخل مبلغ كاش"
+    autocomplete="off" 
+    style="width: 40%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
+    <button onclick="setFullAmountToCash()"
+            style="padding: 10px; font-size: 16px; background-color: #3da3ba; color: white; border: none; border-radius: 5px; cursor: pointer; width: 90px; height: 60px; text-align: center; line-height: 20px;">
+        كامل<br>المبلغ
+    </button>
+</div>
 
             
-            <div>
-                <button id="print-order-btn">طباعة طلب سابق</button>
-            </div>
-            
-            
-            
+          
+<div id="remaining-message" style="text-align: center; font-size: 16px; margin-top: 10px; color: green;"></div>
+
 
 
             
@@ -213,7 +235,6 @@
 </body>
 </html>
 
-<a href="saved-orders2.html" style="text-decoration: none; font-size: 18px; color: #007BFF;">عرض الطلبات السابقة</a>
 
 
 
