@@ -36,6 +36,9 @@ window.onload = () => {
         // حذف الطلب المعدل من localStorage بعد عرضه
         localStorage.removeItem('editOrder');
     }
+
+
+    
 };
 
 
@@ -80,8 +83,9 @@ function addToTable(productName, unitPrice) {
 
         // إضافة المنتج
         const productCell = document.createElement("td");
-        productCell.classList.add("product-name"); // إضافة الكلاس "product-name"
+        productCell.classList.add("product-name");
         productCell.textContent = productName;
+        productCell.onclick = () => editNotes(newRow); // إضافة حدث لتعديل الملاحظات
 
         // إضافة السعر
         const priceCell = document.createElement("td");
@@ -104,6 +108,9 @@ function addToTable(productName, unitPrice) {
         controlCell.appendChild(plusButton);
         controlCell.appendChild(minusButton);
 
+        // تخزين الملاحظات داخل الصف
+        newRow.dataset.notes = ""; // الملاحظات الافتراضية
+
         // إضافة الأعمدة إلى الصف
         newRow.appendChild(countCell);
         newRow.appendChild(productCell);
@@ -116,91 +123,10 @@ function addToTable(productName, unitPrice) {
         // تحديث الإجمالي الكلي
         const currentTotal = parseFloat(totalPriceElement.textContent.replace(" ريال", "").trim());
         totalPriceElement.textContent = `${(currentTotal + unitPrice)} ريال`;
+        
     }
 }
 
-
-
-
-
-
-
-function getPaymentMethod() {
-    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
-    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
-
-    if (madaAmount > 0 && cashAmount > 0) {
-        return `مدى: ${madaAmount} ريال، كاش: ${cashAmount} ريال`;
-    } else if (madaAmount > 0) {
-        return `مدى: ${madaAmount} ريال`;
-    } else if (cashAmount > 0) {
-        return `كاش: ${cashAmount} ريال`;
-    } else {
-        return "غير محدد";
-    }
-}
-
-
-function testPaymentValues() {
-    const madaAmount = document.getElementById('mada-amount') ? parseFloat(document.getElementById('mada-amount').value) || 0 : 0;
-    const cashAmount = document.getElementById('cash-amount') ? parseFloat(document.getElementById('cash-amount').value) || 0 : 0;
-
-    console.log(`Mada Amount: ${madaAmount}`);
-    console.log(`Cash Amount: ${cashAmount}`);
-
-    let paymentMethod = "غير محدد";
-    if (madaAmount > 0 && cashAmount > 0) {
-        paymentMethod = `مدى: ${madaAmount} ريال، كاش: ${cashAmount} ريال`;
-    } else if (madaAmount > 0) {
-        paymentMethod = `مدى: ${madaAmount} ريال`;
-    } else if (cashAmount > 0) {
-        paymentMethod = `كاش: ${cashAmount} ريال`;
-    }
-
-    console.log(`Payment Method: ${paymentMethod}`);
-    return paymentMethod;
-}
-
-
-
-
-function updateMadaPayment() {
-    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
-    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
-
-    if (madaAmount > totalAmount) {
-        Swal.fire({
-            icon: 'error', // أيقونة خطأ
-            title: 'خطأ!',
-            text: 'المبلغ المدخل في مدى لا يمكن أن يكون أكبر من الإجمالي.',
-            confirmButtonText: 'حسناً', // نص زر التأكيد
-            timer: 3000, // اختياري: يغلق التنبيه بعد 3 ثوانٍ
-            timerProgressBar: true // عرض شريط تقدم الوقت
-        });
-                document.getElementById('mada-amount').value = '';
-        document.getElementById('cash-amount').value = '';
-    } else {
-        document.getElementById('cash-amount').value = (totalAmount - madaAmount);
-    }
-}
-
-
-
-
-function updateCashPayment() {
-    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
-    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
-    const remainingDiv = document.getElementById('cash-remaining');
-
-    if (cashAmount > totalAmount) {
-        const remaining = (cashAmount - totalAmount);
-        remainingDiv.textContent = `المتبقي للعميل: ${remaining} ريال`;
-        document.getElementById('mada-amount').value = '0';
-    } else {
-        remainingDiv.textContent = ''; // إخفاء النص إذا كان المبلغ صحيحًا
-        document.getElementById('mada-amount').value = (totalAmount - cashAmount);
-    }
-}
 
 
 
@@ -221,6 +147,7 @@ function clearTable() {
     // تحديث عنصر الإجمالي في الصفحة
     totalPriceElement.textContent = `${totalPrice} ريال`;
 }
+
 
 
 function printDirectly() {
@@ -245,13 +172,22 @@ function printDirectly() {
     const orderTime = now.toLocaleTimeString();
 
     const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
-    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+    let cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
     const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
 
     const totalPaid = madaAmount + cashAmount;
+    const orderNumber = parseInt(document.getElementById('order-number').textContent);
+
+    localStorage.setItem(`totalPaid-${orderNumber}`, totalPaid);
+    console.log(`تم تخزين المدفوع للطلب ${orderNumber}: ${totalPaid}`);
+console.log(localStorage.getItem(`totalPaid-${orderNumber}`));
+
+
+    console.log("Mada Amount:", madaAmount);
+    console.log("Cash Amount:", cashAmount);
 
     // تحقق من المبلغ المدفوع مقارنة بالإجمالي
-    if (totalPaid < totalAmount) {
+    if (totalPaid < totalAmount || totalAmount === 0) {
         Swal.fire({
             icon: 'error',
             title: 'خطأ في المبلغ المدفوع',
@@ -261,35 +197,97 @@ function printDirectly() {
         return;
     }
 
-    if (totalPaid > totalAmount) {
-        const remaining = totalPaid - totalAmount;
-        Swal.fire({
-            icon: 'info',
-            title: 'المتبقي للعميل',
-            text: `المبلغ المدفوع (${totalPaid} ريال) أكثر من الإجمالي. المتبقي للعميل: ${remaining} ريال.`,
-            confirmButtonText: 'متابعة للطباعة'
-        });
+    // تعديل الكاش ليصبح مساوياً للإجمالي إذا كان أكبر منه
+    if (cashAmount > totalAmount) {
+        cashAmount = totalAmount;
     }
 
-    const paymentDetails = `
-        <p><strong>طريقة الدفع:</strong></p>
-        ${madaAmount > 0 ? `<p>مدى: ${madaAmount} ريال</p>` : ''}
-        ${cashAmount > 0 ? `<p>كاش: ${cashAmount} ريال</p>` : ''}
-    `;
+    let paymentMethod = "";
+
+    if (madaAmount > 0 && cashAmount > 0) {
+        paymentMethod = `مدى: ${madaAmount} ريال <br> كاش: ${cashAmount} ريال`;
+    } else if (madaAmount > 0) {
+        paymentMethod = `مدى: ${madaAmount} ريال`;
+    } else if (cashAmount > 0) {
+        paymentMethod = `كاش: ${cashAmount} ريال`;
+    }
+    
+    console.log("Payment Method:", paymentMethod);
+    
+
+    // إضافة عبارة المتبقي إذا كان المبلغ المدفوع أكبر من الإجمالي
+    let remainingMessage = "";
+    if (totalPaid > totalAmount) {
+        const remaining = totalPaid - totalAmount;
+        remainingMessage = `<p style="color: red; font-weight: bold;">المبلغ المدفوع : ${totalPaid}  ريال
+         المتبقي للعميل: ${remaining} ريال</p>`;
+    }
+
+
+    // حفظ طريقة الدفع في الطلب الحالي
+    const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    const totalOrders = previousOrders.length;
+    const totalItems = Array.from(printTable.querySelectorAll("tbody tr")).reduce((sum, row) => {
+        const countCell = row.cells[0]; // عمود العدد
+        const count = parseInt(countCell.textContent.trim());
+        return sum + count;
+    }, 0);
+    const newOrder = {
+        orderNumber: orderNumber || totalOrders + 1,
+        orders: Array.from(document.querySelectorAll('#product-table-body tr')).map(row => ({
+            product: row.cells[1].textContent,
+            price: parseFloat(row.cells[2].textContent.replace(' ريال', '')),
+            count: parseInt(row.cells[0].textContent)
+        })),
+        totalItems: totalItems, // إضافة العدد الإجمالي للمنتجات
+        totalPrice: totalAmount,
+        paymentMethod: paymentMethod,
+        timestamp: new Date().toISOString()
+    };
+
+    previousOrders.push(newOrder);
+    localStorage.setItem('orders', JSON.stringify(previousOrders));
+    console.log("Saved Orders:", previousOrders);
 
     const logo = new Image();
     logo.src = "https://i.postimg.cc/g2GmHSFp/bangalogo.png";
 
     logo.onload = function () {
+       
         const printContent = `
             <html>
             <head>
-                <style>
-                    body { font-family: Arial, sans-serif; direction: rtl; text-align: center; }
-                    table { width: 100%; border-collapse: collapse; margin: auto; }
-                    th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-                    th { background-color: #f2f2f2; }
-                </style>
+            <style>
+            @font-face {
+                font-family:  Arial, sans-serif;
+            }
+
+            body {
+                font-family:  Arial, sans-serif;
+                direction: rtl;
+                text-align: center;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: auto;
+            }
+
+            th, td {
+                border: 1px solid #000;
+                padding: 8px;
+                text-align: center;
+            }
+
+            th {
+                background-color: #f2f2f2;
+            }
+
+            p, div, strong {
+                font-family: Arial, sans-serif;
+            }
+        </style>
             </head>
             <body>
                 <div style="text-align: center;">
@@ -301,11 +299,24 @@ function printDirectly() {
                 </div>
                 ${printTable.outerHTML}
                 <div style="text-align: center; margin-top: 20px;">
-                    ${paymentDetails}
-                </div>
+                <strong>إجمالي عدد الأصناف:</strong> ${totalItems}
+            </div>
                 <div style="text-align: center; margin-top: 20px;">
-                    <p>شكراً لتعاملكم معنا</p>
-                </div>
+    <strong>طريقة الدفع:</strong><br>
+    ${paymentMethod}
+
+    
+</div>
+
+
+                ${remainingMessage}
+
+                <div style="text-align: center; margin-top: 20px;">
+    <p style="font-weight: bold;">
+        بالعافية عليك .. ننتظرك تنورنا في فرع بنقا في الهفوف - حي الحوراء بالقرب من دوار التميمي وبنده
+    </p>
+</div>
+
             </body>
             </html>
         `;
@@ -314,21 +325,62 @@ function printDirectly() {
 
         document.body.innerHTML = printContent;
 
-        console.log("Mada Amount:", madaAmount);
-console.log("Cash Amount:", cashAmount);
-console.log("Payment Method:", paymentMethod);
-
-    
-    window.print(); // طباعة
-});
-
+        // الطباعة مرة واحدة فقط
+        window.print();  
+        
+       
+        
+        setTimeout(async () => {
+            await sendCutCommand(); // استدعاء أمر القطع
+        
+           
+        }, 10000); // تأخير 10 ثانية     
         // استعادة المحتوى الأصلي وتنفيذ الخطوات الأخرى
         document.body.innerHTML = originalContent;
-    updateMadaPayment(); // تحديث القيم
-    saveOrdersToLocalStorage(); // حفظ الطلبات   
-    updateOrderNumber();
+
+
+        const shortPrintContent = `
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; direction: rtl; text-align: center; }
+            table { width: 100%; border-collapse: collapse; margin: auto; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+            th { background-color: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <div style="text-align: center;">
+            <p style="font-size: 12px;">
+                <strong>رقم الطلب:</strong> ${orderNumber} |
+                <strong>تاريخ الطلب:</strong> ${orderDate} |
+                <strong>وقت الطلب:</strong> ${orderTime}
+            </p>
+        </div>
+        ${printTable.outerHTML}
+        <div style="text-align: center; margin-top: 20px;">
+                <strong>إجمالي عدد الأصناف:</strong> ${totalItems}
+            </div>
+    </body>
+    </html>
+`;
+
+
+document.body.innerHTML = originalContent;
+
+
+// طباعة المحتوى المختصر
+// document.body.innerHTML = shortPrintContent;
+// window.print();
+// document.body.innerHTML = originalContent;
+rebindEvents(); // إعادة تعيين الأحداث
+
+
+
+        updateOrderNumber();
         clearTable();
-        
+      // window.location.reload();
+
     };
 
     logo.onerror = function () {
@@ -338,13 +390,24 @@ console.log("Payment Method:", paymentMethod);
 
 
 
-function updateOrderNumber() {
-    const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
-    const nextOrderNumber = previousOrders.length + 1;
-    document.getElementById('order-number').textContent = nextOrderNumber;
 
-    
+
+
+
+function updateOrderNumber() {
+    const today = new Date().toLocaleDateString(); // تاريخ اليوم بصيغة قابلة للمقارنة
+    const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+
+    // تصفية الطلبات حسب تاريخ اليوم
+    const todaysOrders = previousOrders.filter(order => {
+        const orderDate = new Date(order.timestamp).toLocaleDateString(); // تحويل تاريخ الطلب إلى نفس التنسيق
+        return orderDate === today; // الاحتفاظ فقط بالطلبات التي تم إنشاؤها اليوم
+    });
+
+    const nextOrderNumber = todaysOrders.length + 1; // الرقم التالي للطلب
+    document.getElementById('order-number').textContent = nextOrderNumber;
 }
+
 
 
 
@@ -374,41 +437,43 @@ orders.forEach((order, index) => {
 
 
 
+const madaInput = document.getElementById('mada-amount');
+const cashInput = document.getElementById('cash-amount');
+
+if (!madaInput || !cashInput) {
+    console.error("حقول طريقة الدفع مفقودة!");
+} else {
+    console.log("Mada Input Value:", madaInput.value);
+    console.log("Cash Input Value:", cashInput.value);
+}
+
+
 
 function saveOrdersToLocalStorage() {
     const tableBody = document.getElementById('product-table-body');
     const rows = Array.from(tableBody.rows);
 
+    // استخراج الطلبات من الجدول
     const orders = rows.map(row => ({
         product: row.cells[1].textContent,
         price: parseFloat(row.cells[2].textContent.replace(' ريال', '')),
-        count: parseInt(row.cells[0].textContent)
+        count: parseInt(row.cells[0].textContent),
+        notes: row.dataset.notes || "بدون ملاحظات" // حفظ الملاحظات
     }));
 
-    // قراءة القيم المدخلة لطريقة الدفع
-    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
-    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
-
-    let paymentMethod = "غير محدد";
-
-    if (madaAmount > 0 && cashAmount > 0) {
-        paymentMethod = `مدى: ${madaAmount} ريال، كاش: ${cashAmount} ريال`;
-    } else if (madaAmount > 0) {
-        paymentMethod = `مدى: ${madaAmount} ريال`;
-    } else if (cashAmount > 0) {
-        paymentMethod = `كاش: ${cashAmount} ريال`;
-    }
-
     const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    const orderNumber = parseInt(document.getElementById('order-number').textContent);
+    const totalPrice = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', ''));
+
     previousOrders.push({
-        orderNumber: parseInt(document.getElementById('order-number').textContent),
+        orderNumber: orderNumber,
         orders: orders,
-        totalPrice: parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')),
-        paymentMethod: paymentMethod, // تخزين طريقة الدفع
+        totalPrice: totalPrice,
         timestamp: new Date().toISOString()
     });
 
     localStorage.setItem('orders', JSON.stringify(previousOrders));
+    console.log("Saved Orders:", previousOrders);
 }
 
 
@@ -450,7 +515,7 @@ function resetOrderNumber() {
 }
 
 function addCustomPriceProduct1() {
-    // نافذة إدخال اسم المنتج
+    // الخطوة الأولى: إدخال اسم المنتج
     Swal.fire({
         title: 'إضافة منتج',
         input: 'text',
@@ -461,29 +526,21 @@ function addCustomPriceProduct1() {
         confirmButtonText: 'التالي'
     }).then((result) => {
         if (result.isDismissed) {
-            // إذا اختار المستخدم إلغاء
-            Swal.fire({
-                title: 'تم إلغاء العملية',
-                text: '',
-                icon: 'info',
-                timer: 1000, // المدة الزمنية (بالملي ثانية)
-                timerProgressBar: true, // شريط تقدم الوقت
-                showConfirmButton: false // إخفاء زر التأكيد
-            });
-                        return;
+            
+            return;
         }
 
         let productName = result.value || "طلب خاص"; // اسم المنتج الافتراضي
 
-        // نافذة إدخال السعر
+        // الخطوة الثانية: إدخال السعر
         Swal.fire({
-            title: `إضافة سعر ${productName}`,
+            title: `إضافة سعر لـ "${productName}"`,
             input: 'number',
             inputLabel: 'السعر بالريال',
             inputPlaceholder: 'أدخل السعر',
             showCancelButton: true,
             cancelButtonText: 'إلغاء',
-            confirmButtonText: 'إضافة',
+            confirmButtonText: 'التالي',
             inputValidator: (value) => {
                 if (!value || value <= 0) {
                     return 'يرجى إدخال سعر صالح!';
@@ -491,19 +548,64 @@ function addCustomPriceProduct1() {
             }
         }).then((result) => {
             if (result.isDismissed) {
-                // إذا اختار المستخدم إلغاء
                 Swal.fire('تم إلغاء العملية', '', 'info');
                 return;
             }
 
             const productPrice = parseFloat(result.value);
-            // إضافة المنتج إلى الجدول
-            addToTable(productName, productPrice);
 
-            // تأكيد الإضافة
-            Swal.fire(`تم إضافة المنتج "${productName}" بسعر ${productPrice} ريال`, '', 'success');
+            // الخطوة الثالثة: التحقق من حساب المنتج كصنف
+            Swal.fire({
+                title: `هل تريد حساب "${productName}" كصنف؟`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'لا',
+            }).then((confirmResult) => {
+                const includeInCount = confirmResult.isConfirmed;
+
+                // إضافة المنتج إلى الجدول
+                addCustomProductToTable(productName, productPrice, includeInCount);
+
+                // تأكيد الإضافة
+                Swal.fire({
+                    title: `تم إضافة المنتج "${productName}" بسعر ${productPrice} ريال`,
+                    text: includeInCount ? 'تم حساب المنتج كصنف.' : 'تم إضافة المنتج دون احتسابه كصنف.',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            });
         });
     });
+}
+
+// وظيفة إضافة المنتج إلى الجدول
+function addCustomProductToTable(productName, productPrice, includeInCount) {
+    const tableBody = document.getElementById('product-table-body');
+    const newRow = document.createElement('tr');
+
+    // إنشاء صف للمنتج
+    newRow.innerHTML = `
+        <td>${includeInCount ? 1 : 0}</td>
+        <td>${productName}</td>
+        <td>${productPrice} ريال</td>
+        <td>
+            <button class="delete-btn" onclick="deleteRow(this)">حذف</button>
+        </td>
+    `;
+    tableBody.appendChild(newRow);
+
+    // تحديث الإجمالي دائمًا
+    updateTotalPrice(productPrice);
+}
+
+// وظيفة تحديث الإجمالي
+function updateTotalPrice(additionalAmount) {
+    const totalPriceElement = document.getElementById('total-price');
+    let currentTotal = parseFloat(totalPriceElement.textContent.replace(' ريال', '').trim());
+    currentTotal += additionalAmount;
+    totalPriceElement.textContent = `${currentTotal} ريال`;
 }
 
 
@@ -548,6 +650,54 @@ function deleteProductRow(button) {
 
 
 
+
+function updateMadaPayment() {
+    const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
+    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
+
+    if (madaAmount > totalAmount) {
+        Swal.fire({
+            icon: 'error',
+            title: 'خطأ!',
+            text: 'المبلغ المدخل في مدى لا يمكن أن يكون أكبر من الإجمالي.',
+            confirmButtonText: 'حسناً',
+            timer: 3000,
+            timerProgressBar: true
+        });
+        document.getElementById('mada-amount').value = '';
+        document.getElementById('cash-amount').value = '';
+    } else {
+        document.getElementById('cash-amount').value = (totalAmount - madaAmount);
+    }
+}
+
+
+function updateCashPayment() {
+    const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+    const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
+    const madaField = document.getElementById('mada-amount');
+    const remainingMessage = document.getElementById('remaining-message');
+
+    if (cashAmount >= totalAmount) {
+        // إذا كان المبلغ المدخل في الكاش أكبر أو يساوي الإجمالي، صفر مدى وأظهر المتبقي
+        madaField.value = '';
+        const remaining = (cashAmount - totalAmount);
+        remainingMessage.textContent = `المتبقي للعميل: ${remaining} ريال`;
+        remainingMessage.style.color = "green";
+    } else {
+        // إذا كان الكاش أقل من الإجمالي، أكمل مدى
+        madaField.value = (totalAmount - cashAmount);
+        remainingMessage.textContent = '';
+    }
+}
+
+
+
+
+
+// ربط الحقول بالدوال لتحديث الدفع
+document.getElementById('mada-amount').addEventListener('input', updateMadaPayment);
+document.getElementById('cash-amount').addEventListener('input', updateCashPayment);
 
 
 
@@ -658,7 +808,9 @@ function saveEditedOrder() {
     const totalPrice = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', ''));
     const orderNumber = parseInt(document.getElementById('order-number').textContent);
 
-    const savedOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    const savedOrders = JSON.parse(localStorage.getItem('orders'))    || [];
+    console.log("Saved Orders:", savedOrders);
+
     const updatedOrderIndex = savedOrders.findIndex(order => order.orderNumber === orderNumber);
 
     if (updatedOrderIndex !== -1) {
@@ -719,31 +871,26 @@ function updateRow(row, unitPrice, action) {
         }
     }
 }
-
-
-
 async function sendCutCommand() {
     try {
-        const devices = await navigator.usb.requestDevice({ filters: [] });
+        const devices = await navigator.usb.getDevices();
         if (devices.length > 0) {
             const printerDevice = devices[0];
             await printerDevice.open();
             await printerDevice.selectConfiguration(1);
             await printerDevice.claimInterface(0);
-
             const cutCommand = new Uint8Array([0x1B, 0x69]); // أمر القطع ESC i
             await printerDevice.transferOut(1, cutCommand);
-
             console.log("تم إرسال أمر القطع بنجاح.");
+            await printerDevice.releaseInterface(0);
             await printerDevice.close();
         } else {
-            console.log("لم يتم العثور على أجهزة.");
+            console.error("لم يتم العثور على طابعة.");
         }
     } catch (error) {
-        console.error("حدث خطأ أثناء إرسال أمر القطع:", error);
+        console.error("فشل في إرسال أمر القطع:", error);
     }
 }
-
 
 document.getElementById('print-order-btn').addEventListener('click', () => {
     Swal.fire({
@@ -787,19 +934,26 @@ function printLastOrder() {
     printOrderByNumber(lastOrder.orderNumber);
 }
 
-function printOrderByNumber(orderNumber) {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const order = orders.find(o => o.orderNumber === orderNumber);
 
-    if (!order) {
+
+
+function printLastOrder() {
+    // الحصول على جميع الطلبات من localStorage
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+    // إذا لم تكن هناك طلبات
+    if (orders.length === 0) {
         Swal.fire({
             icon: 'error',
-            title: 'رقم الطلب غير موجود',
-            text: `لم يتم العثور على طلب برقم ${orderNumber}.`,
+            title: 'لا توجد طلبات',
+            text: 'لم يتم العثور على أي طلبات.',
             confirmButtonText: 'حسناً'
         });
         return;
     }
+
+    // الحصول على آخر طلب
+    const lastOrder = orders[orders.length - 1];
 
     const logo = new Image();
     logo.src = "https://i.postimg.cc/g2GmHSFp/bangalogo.png";
@@ -815,42 +969,34 @@ function printOrderByNumber(orderNumber) {
                     th { background-color: #f2f2f2; }
                 </style>
             </head>
-            <body>
-                <div style="text-align: center;">
-                    <img src="${logo.src}" alt="شعار" style="width: 100px; margin-bottom: 10px;">
-                    <p style="font-size: 14px; font-weight: bold;">
-                        <strong>رقم الطلب:</strong> ${order.orderNumber}
-                    </p>
-                    <p style="font-size: 12px;">
-                        <strong>تاريخ الطلب:</strong> ${new Date(order.timestamp).toLocaleDateString()} |
-                        <strong>وقت الطلب:</strong> ${new Date(order.timestamp).toLocaleTimeString()}
-                    </p>
-                </div>
+            <body>        
+                <p style="font-size: 20px;"><strong>فاتورة مطبخ</strong></p>
+                <p><strong>رقم الطلب:</strong> ${lastOrder.orderNumber}</p>
+                <p style="font-size: 12px;">
+                    <strong>تاريخ الطلب:</strong> ${new Date(lastOrder.timestamp).toLocaleDateString()} |
+                    <strong>وقت الطلب:</strong> ${new Date(lastOrder.timestamp).toLocaleTimeString()}
+                </p>
                 <table>
                     <thead>
                         <tr>
                             <th>العدد</th>
-                            <th>المنتج</th>
-                            <th>السعر</th>
+                            <th>المنتج</th> 
                         </tr>
                     </thead>
                     <tbody>
-                        ${order.orders.map(item => `
+                        ${lastOrder.orders.map(item => `
                             <tr>
                                 <td>${item.count}</td>
                                 <td>${item.product}</td>
-                                <td>${item.price.toFixed(2)} ريال</td>
                             </tr>
+                            
                         `).join('')}
+                        
                     </tbody>
                 </table>
                 <div style="text-align: center; margin-top: 20px;">
-                    <p><strong>الإجمالي:</strong> ${order.totalPrice.toFixed(2)} ريال</p>
-                    <p><strong>طريقة الدفع:</strong> ${order.paymentMethod}</p>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <p>شكراً لتعاملكم معنا</p>
-                </div>
+                <strong>إجمالي عدد الأصناف:</strong> ${lastOrder.totalItems}
+            </div>
             </body>
             </html>
         `;
@@ -864,6 +1010,15 @@ function printOrderByNumber(orderNumber) {
         };
 
         printWindow.print();
+
+        setTimeout(async () => {
+            await sendCutCommand(); // استدعاء أمر القطع
+        
+           
+        }, 11000); // تأخير 10 ثانية     
+        // استعادة المحتوى الأصلي وتنفيذ الخطوات الأخرى
+        
+    
     };
 
     logo.onerror = function () {
@@ -874,4 +1029,350 @@ function printOrderByNumber(orderNumber) {
             confirmButtonText: 'حسناً'
         });
     };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// دالة لتحويل الأرقام العربية إلى أرقام إنجليزية ومنع الحروف
+function validateAndConvertInput(input) {
+    // إزالة أي حروف غير أرقام
+    input.value = input.value.replace(/[^٠-٩0-9]/g, '');
+
+    // تحويل الأرقام العربية إلى أرقام إنجليزية
+    input.value = input.value.replace(/[٠-٩]/g, (digit) => "٠١٢٣٤٥٦٧٨٩".indexOf(digit));
+}
+
+// تطبيق التحقق والتحويل على حقل مدى
+document.getElementById('mada-amount').addEventListener('input', function () {
+    validateAndConvertInput(this);
+    updateMadaPayment(); // استدعاء الدالة لتحديث الحساب
+});
+
+// تطبيق التحقق والتحويل على حقل كاش
+document.getElementById('cash-amount').addEventListener('input', function () {
+    validateAndConvertInput(this);
+    updateCashPayment(); // استدعاء الدالة لتحديث الحساب
+});
+
+
+
+
+
+function editNotes(row) {
+    const productName = row.cells[1].textContent.trim(); // اسم المنتج
+    const productCount = parseInt(row.cells[0].textContent.trim()); // العدد الحالي
+
+    Swal.fire({
+        title: `إضافة ملاحظات لـ "${productName}"`,
+        html: `
+            <div style="text-align: left; font-size: 16px; line-height: 1.8;">
+                <label><strong>عدد الوحدات:</strong></label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <button id="decreaseCount" style="width: 40px; height: 40px; font-size: 20px; background-color: #f2f2f2; border: 1px solid #ccc; border-radius: 5px;">-</button>
+                    <span id="noteCountDisplay" style="font-weight: bold; font-size: 18px; padding: 0 10px;">${productCount}</span>
+                    <button id="increaseCount" style="width: 40px; height: 40px; font-size: 20px; background-color: #f2f2f2; border: 1px solid #ccc; border-radius: 5px;">+</button>
+                </div>
+                <label><strong>اختر ملاحظات جاهزة:</strong></label>
+                <div id="readyNotes" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <button class="note-btn" data-note="بدون سكر" style="padding: 10px; background-color: #f2f2f2; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;">بدون سكر</button>
+                    <button class="note-btn" data-note="بدون ثلج" style="padding: 10px; background-color: #f2f2f2; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;">بدون ثلج</button>
+                    <button class="note-btn" data-note="بدون آيسكريم" style="padding: 10px; background-color: #f2f2f2; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;">بدون آيسكريم</button>
+                    <button class="note-btn" data-note="بدون إضافات" style="padding: 10px; background-color: #f2f2f2; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;">بدون إضافات</button>
+                </div>
+                <label><strong>أو أضف ملاحظة مخصصة:</strong></label>
+                <input id="customNote" type="text" placeholder="اكتب ملاحظة مخصصة" style="width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px;">
+            </div>
+        `,
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'حفظ',
+        didOpen: () => {
+            let currentCount = productCount;
+
+            // تحديث العدد
+            const countDisplay = document.getElementById('noteCountDisplay');
+            const increaseButton = document.getElementById('increaseCount');
+            const decreaseButton = document.getElementById('decreaseCount');
+
+            increaseButton.addEventListener('click', () => {
+                if (currentCount < productCount) {
+                    currentCount++;
+                    countDisplay.textContent = currentCount;
+                }
+            });
+
+            decreaseButton.addEventListener('click', () => {
+                if (currentCount > 1) {
+                    currentCount--;
+                    countDisplay.textContent = currentCount;
+                }
+            });
+
+            // التعامل مع أزرار الملاحظات
+            const noteButtons = document.querySelectorAll('.note-btn');
+            noteButtons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('selected'); // تفعيل/إلغاء تفعيل الزر
+                    btn.style.backgroundColor = btn.classList.contains('selected') ? '#007bff' : '#f2f2f2';
+                    btn.style.color = btn.classList.contains('selected') ? 'white' : 'black';
+                });
+            });
+        },
+        preConfirm: () => {
+            const selectedCount = parseInt(document.getElementById('noteCountDisplay').textContent) || 0;
+            const selectedNotes = Array.from(document.querySelectorAll('.note-btn.selected')).map(btn => btn.dataset.note);
+            const customNote = document.getElementById('customNote').value.trim();
+            if (customNote) selectedNotes.push(customNote);
+
+            return {
+                count: selectedCount,
+                notes: selectedNotes
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const { count, notes } = result.value;
+            const notesText = notes.join(', ') || "بدون ملاحظات";
+
+            // تحديث خلية المنتج بإضافة العدد والملاحظات
+            row.cells[1].innerHTML = `
+                ${productName}
+                <br>
+                <small style="color: gray; font-size: 12px;">عدد: ${count} (${notesText})</small>
+            `;
+
+            Swal.fire({
+                title: 'تم تحديث الملاحظات!',
+                text: `تم تطبيق الملاحظات على "${productName}": عدد: ${count}, ${notesText}`,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    });
+}
+
+
+
+function printDirectlyWithDate() {
+        // نافذة إدخال التاريخ ورقم الطلب
+        Swal.fire({
+            title: 'اختيار تاريخ الطلب ورقم الطلب',
+            html: `
+                <label>أدخل التاريخ:</label>
+                <input type="date" id="order-date" style="width: 100%; padding: 10px; margin-bottom: 10px; font-size: 16px;">
+                <label>أدخل رقم الطلب:</label>
+                <input type="number" id="order-number-input" style="width: 100%; padding: 10px; font-size: 16px;" placeholder="أدخل رقم الطلب">
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'التالي',
+            cancelButtonText: 'إلغاء',
+            preConfirm: () => {
+                const dateInput = document.getElementById('order-date').value;
+                const orderNumberInput = document.getElementById('order-number-input').value;
+    
+                if (!dateInput) {
+                    Swal.showValidationMessage('يرجى إدخال تاريخ صالح!');
+                    return false;
+                }
+    
+                if (!orderNumberInput || parseInt(orderNumberInput) <= 0) {
+                    Swal.showValidationMessage('يرجى إدخال رقم طلب صالح!');
+                    return false;
+                }
+    
+                return {
+                    date: dateInput,
+                    orderNumber: parseInt(orderNumberInput)
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const { date, orderNumber } = result.value;
+                const selectedDate = new Date(date);
+    
+                const table = document.getElementById('order-table');
+                if (!table) {
+                    alert("الجدول غير موجود!");
+                    return;
+                }
+    
+                const printTable = table.cloneNode(true);
+    
+                // حذف العمود الخاص بالحذف من نسخة الجدول
+                const rows = printTable.rows;
+                for (let i = 0; i < rows.length; i++) {
+                    if (rows[i].cells.length > 3) {
+                        rows[i].deleteCell(3); // حذف العمود الرابع (عمود زر الحذف)
+                    }
+                }
+    
+                const orderDate = selectedDate.toLocaleDateString();
+                const orderTime = new Date().toLocaleTimeString();
+    
+                const madaAmount = parseFloat(document.getElementById('mada-amount').value) || 0;
+                let cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+                const totalAmount = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', '')) || 0;
+    
+                const totalPaid = madaAmount + cashAmount;
+                localStorage.setItem(`totalPaid-${orderNumber}`, totalPaid);
+                
+
+    
+                if (totalPaid < totalAmount || totalAmount === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطأ في المبلغ المدفوع',
+                        text: `المبلغ المدفوع (${totalPaid} ريال) أقل من الإجمالي (${totalAmount} ريال). يرجى تعديل طريقة الدفع.`,
+                        confirmButtonText: 'حسناً'
+                    });
+                    return;
+                }
+    
+                if (cashAmount > totalAmount) {
+                    cashAmount = totalAmount;
+                }
+    
+                let paymentMethod = "";
+    
+                if (madaAmount > 0 && cashAmount > 0) {
+                    paymentMethod = `مدى: ${madaAmount} ريال <br> كاش: ${cashAmount} ريال`;
+                } else if (madaAmount > 0) {
+                    paymentMethod = `مدى: ${madaAmount} ريال`;
+                } else if (cashAmount > 0) {
+                    paymentMethod = `كاش: ${cashAmount} ريال`;
+                }
+    
+                let remainingMessage = "";
+                if (totalPaid > totalAmount) {
+                    const remaining = totalPaid - totalAmount;
+                    remainingMessage = `<p style="color: red; font-weight: bold;">المتبقي للعميل: ${remaining} ريال</p>`;
+                }
+    
+                const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    
+                const newOrder = {
+                    orderNumber: orderNumber,
+                    orders: Array.from(document.querySelectorAll('#product-table-body tr')).map(row => ({
+                        product: row.cells[1].textContent,
+                        price: parseFloat(row.cells[2].textContent.replace(' ريال', '')),
+                        count: parseInt(row.cells[0].textContent)
+                    })),
+                    totalPrice: totalAmount,
+                    paymentMethod: paymentMethod,
+                    timestamp: selectedDate.toISOString()
+                };
+    
+                previousOrders.push(newOrder);
+                localStorage.setItem('orders', JSON.stringify(previousOrders));
+    
+                const totalItems = Array.from(printTable.querySelectorAll("tbody tr")).reduce((sum, row) => {
+                    const countCell = row.cells[0]; // عمود العدد
+                    const count = parseInt(countCell.textContent.trim());
+                    return sum + count;
+                }, 0);
+    
+                const printContent = `
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; direction: rtl; text-align: center; }
+                            table { width: 100%; border-collapse: collapse; margin: auto; }
+                            th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+                            th { background-color: #f2f2f2; }
+                        </style>
+                    </head>
+                    <body>
+                        <div style="text-align: center;">
+                            <img src="https://i.postimg.cc/g2GmHSFp/bangalogo.png" alt="شعار" style="width: 100px; margin-bottom: 10px;">
+                            <p style="font-size: 12px;">
+                                <strong>تاريخ الطلب:</strong> ${orderDate} |
+                                <strong>وقت الطلب:</strong> ${orderTime}
+                            </p>
+                        </div>
+                        ${printTable.outerHTML}
+                        <div style="text-align: center; margin-top: 20px;">
+                            <strong>إجمالي عدد الأصناف:</strong> ${totalItems}
+                        </div>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <strong>طريقة الدفع:</strong><br>
+                            ${paymentMethod}
+                        </div>
+                        ${remainingMessage}
+                    </body>
+                    </html>
+                `;
+    
+                const originalContent = document.body.innerHTML;
+    
+                document.body.innerHTML = printContent;
+                window.print();
+                document.body.innerHTML = originalContent;
+                window.location.reload();
+
+                    clearTable();
+            }
+        });
+    }
+    
+
+
+
+
+
+
+document.getElementById('cut-and-print-btn').addEventListener('click', async () => {
+    try {
+        // استدعاء دالة قطع الورق
+        await sendCutCommand();
+        console.log("تم قطع الورق بنجاح.");
+
+        // استدعاء دالة الطباعة
+        printLastOrder(); // طباعة آخر طلب    
+        
+        
+    } catch (error) {
+        console.error("حدث خطأ أثناء تنفيذ العملية:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'خطأ',
+            text: 'حدث خطأ أثناء تنفيذ العملية. يرجى المحاولة مرة أخرى.',
+            confirmButtonText: 'حسناً'
+        });
+    }
+});
+
+
+
+
+function rebindEvents() {
+    const cutAndPrintButton = document.getElementById('cut-and-print-btn');
+    if (cutAndPrintButton) {
+        cutAndPrintButton.addEventListener('click', async () => {
+            await sendCutCommand();
+            printDirectly();
+        });
+    }
+}
+
+
+
+
+
+function addNewOrderToLivePage(order) {
+    const livePage = window.open("orders-live.html", "LiveOrders");
+    if (livePage) {
+        livePage.addNewOrder(order); // استدعاء الدالة لإضافة الطلب الجديد
+    }
 }
