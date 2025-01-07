@@ -7,14 +7,42 @@
 <!-- رابط JavaScript لـ SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <div style="margin-bottom: 20px;">
-        <label for="filter-date">تصفية حسب التاريخ:</label>
-        <input type="date" id="filter-date" style="padding: 5px; margin-right: 10px;">
-        <button id="apply-filter-btn" style="padding: 5px 10px; background-color: #007BFF; color: white; border: none; cursor: pointer;">
-            تطبيق الفلتر
-        </button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<div style="
+    position: sticky; /* أو استخدم fixed إذا أردت تثبيت دائم */
+    top: 0;
+    z-index: 1000; /* لضمان بقاء العنصر فوق جميع العناصر الأخرى */
+    background-color: #fff; /* خلفية بيضاء لتغطية الخلفية عند التمرير */
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd; /* خط سفلي للفصل */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* ظل خفيف */
+">
+    <label for="filter-date">تصفية حسب التاريخ:</label>
+    <div style="margin-bottom: 20px; text-align: center;">
+        <label for="filter-date" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">اختر الفترة:</label>
+        <input type="date" id="filter-date" style="padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin: 10px 0;">
+        <div style="margin-top: 10px;">
+            <button onclick="setToday()" class="filter-btn" style="background-color: #007BFF;">اليوم</button>
+            <button onclick="setYesterday()" class="filter-btn" style="background-color: #6c757d;">الأمس</button>
+            <button onclick="setDayBeforeYesterday()" class="filter-btn" style="background-color: #17a2b8;">قبل الأمس</button>
+            <button onclick="setThisWeek()" class="filter-btn" style="background-color: #28a745;">هذا الأسبوع</button>
+            <button onclick="setThisMonth()" class="filter-btn" style="background-color: #ffc107; color: black;">هذا الشهر</button>
+        </div>
     </div>
-    
+    <div id="selected-range" style="
+        text-align: center;
+        font-size: 18px;
+        margin-top: 10px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    ">
+        <strong style="color: #464646;">الفترة المختارة:</strong> 
+        <span id="range-display" style="color: #007BFF;">لم يتم اختيار فترة بعد</span>
+    </div>
+</div>
 
 
 
@@ -22,12 +50,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الطلبات السابقة</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            direction: rtl;
-            text-align: center;
-            margin: 20px;
-        }
+
+@font-face {
+    font-family: 'TheSansPlain'; 
+    src: url('fonts/TheSansPlain.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    font-family: 'TheSansPlain', Arial, sans-serif !important;
+}
+
+body {
+    font-family: 'TheSansPlain', Arial, sans-serif; /* استبدل Arial بخط بديل إذا لم يتم تحميل الخط */
+
+    direction: rtl;
+    text-align: center;
+    margin: 20px;
+}
 
         button {
             padding: 10px 20px;
@@ -61,34 +102,74 @@
 
         h1 {
             margin-bottom: 30px;
+            
         }
 
         .details-table {
             margin-top: 10px;
         }
+        .filter-btn {
+    padding: 10px 20px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.filter-btn:hover {
+    transform: translateY(-3px);
+    opacity: 0.9;
+}
+
+.filter-btn:active {
+    transform: translateY(0);
+}
+
+.filter-btn[style*="background-color: #ffc107"] {
+    color: black; /* اللون الأسود للأزرار الصفراء */
+}
+
     </style>
 </head>
 <body>
     
-
-    <div style="text-align: center; margin-bottom: 20px;">
-        <button id="show-report-btn" style="padding: 10px 20px; background-color: #007BFF; color: white; border: none; cursor: pointer; border-radius: 5px;">
+    <div style="position: fixed; top: 250px; right: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 15px; background-color: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <button onclick="returnToHome()" style="padding: 15px; background-color: #464646; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; width: 180px;">
+            العودة إلى الصفحة الرئيسية
+        </button>
+        <button id="show-report-btn" style="padding: 15px; background-color: #464646; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; width: 180px;">
             عرض التقرير
+        </button>
+        <button onclick="editOrder()" style="padding: 15px; background-color: #464646; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; width: 180px;">
+            تعديل الطلب
+        </button>
+         <button onclick="exportToExcel()" style="padding: 15px; background-color: #464646; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; width: 180px;">
+            تحميل الطلبات كملف Excel
+        </button>
+       
+       
+       
+        <button onclick="window.location.href='deleted-orders.html'" style="padding: 15px; background-color: #464646; color: white; text-decoration: none; border-radius: 10px; cursor: pointer; font-size: 14px; width: 180px;">
+            عرض الطلبات المحذوفة
+        </button>
+        <button id="delete-orders-btn" class="delete-btn" style="padding: 15px; background-color: #FF0000; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; width: 180px;">
+            حذف جميع الطلبات
         </button>
     </div>
     
+        
+    </div>
+    
+    <div style="display: flex; flex-direction: row; min-height: 100vh;">
+        <!-- القسم الأيسر (المحتوى الرئيسي) -->
+        <div style="flex: 1; padding: 20px;">
+    
     <h1>الطلبات السابقة</h1>
 
-    <!-- زر حذف الطلبات -->
-    <button id="delete-orders-btn" class="delete-btn">حذف جميع الطلبات</button>
    
-   
-    <div style="text-align: center; margin-bottom: 20px;">
-        <button onclick="editOrder()">تعديل الطلب</button>
-    </div>
-   <a href="deleted-orders.html" class="btn">عرض الطلبات المحذوفة</a>
-
-
     
     <!-- الجدول الرئيسي -->
     <table id="main-orders-table">
@@ -115,103 +196,241 @@
     <div id="orders-details-container">
         <!-- سيتم إنشاء تفاصيل الطلبات هنا -->
     </div>
-
+</div>
 
     
     <script>
 
 document.getElementById('show-report-btn').addEventListener('click', showReport);
+window.onload = () => {
+    loadOrdersSortedByDate(); // استدعاء ترتيب وعرض الطلبات عند تحميل الصفحة
+};
+
+
 
 function showReport() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const totalOrders = orders.length;
-    const totalAmount = orders.reduce((sum, order) => sum + parseFloat(order.totalPrice || 0), 0);
-
-    // حساب أكثر المنتجات مبيعًا
-    const productStats = {};
-    orders.forEach(order => {
-        order.orders.forEach(item => {
-            if (!productStats[item.product]) {
-                productStats[item.product] = { count: 0, total: 0 };
-            }
-            productStats[item.product].count += item.count;
-            productStats[item.product].total += item.price;
-        });
-    });
-
-    const productTableRows = Object.entries(productStats)
-        .sort((a, b) => b[1].count - a[1].count) // ترتيب حسب الكمية
-        .map(([product, stats]) => `
-            <tr>
-                <td style="border: 1px solid #000; padding: 8px;">${product}</td>
-                <td style="border: 1px solid #000; padding: 8px;">${stats.total.toFixed(2)} ريال</td>
-                <td style="border: 1px solid #000; padding: 8px;">${stats.count}</td>
-            </tr>
-        `).join('');
-
-    const reportHTML = `
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h2>تقرير الطلبات</h2>
-            <p><strong>عدد الطلبات:</strong> ${totalOrders}</p>
-            <p><strong>إجمالي الطلبات:</strong> ${totalAmount.toFixed(2)} ريال</p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; text-align: center; margin: 20px auto;">
-            <thead>
-                <tr style="background-color: #f2f2f2;">
-                    <th style="border: 1px solid #000; padding: 8px;">المنتج</th>
-                    <th style="border: 1px solid #000; padding: 8px;">إجمالي الطلبات</th>
-                    <th style="border: 1px solid #000; padding: 8px;">العدد</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${productTableRows}
-            </tbody>
-        </table>
-    `;
-
+    // SweetAlert لإدخال الرقم السري
     Swal.fire({
-        title: 'تقرير الطلبات',
-        html: reportHTML,
-        width: '80%',
-        confirmButtonText: 'إغلاق'
+        title: 'أدخل الرقم السري لعرض التقرير',
+        input: 'password',
+        inputAttributes: {
+            autocapitalize: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'عرض التقرير',
+        cancelButtonText: 'إلغاء',
+        showLoaderOnConfirm: true,
+        preConfirm: (password) => {
+            if (password !== "1234") {
+                Swal.showValidationMessage('كلمة المرور غير صحيحة!');
+                return false;
+            }
+            return true;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // قراءة التاريخ من الفلتر
+            const selectedDate = document.getElementById('filter-date')?.value;
+
+            // جلب الطلبات من localStorage
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+            // تصفية الطلبات حسب التاريخ
+            const filteredOrders = selectedDate
+                ? orders.filter(order => new Date(order.timestamp).toLocaleDateString('en-CA') === selectedDate)
+                : orders;
+
+            if (filteredOrders.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'لا توجد طلبات',
+                    text: 'لا توجد طلبات مطابقة للفترة المحددة.',
+                    confirmButtonText: 'حسناً'
+                });
+                return;
+            }
+
+            // حساب الفترة الزمنية
+            const sortedOrders = filteredOrders.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const firstOrderDate = new Date(sortedOrders[0].timestamp).toLocaleDateString('en-CA');
+            const lastOrderDate = new Date(sortedOrders[sortedOrders.length - 1].timestamp).toLocaleDateString('en-CA');
+
+            const totalOrders = filteredOrders.length;
+            const totalAmount = filteredOrders.reduce((sum, order) => sum + parseFloat(order.totalPrice || 0), 0);
+
+            // حساب إجمالي الكاش والمدى
+            let totalCash = 0;
+            let totalMada = 0;
+
+            filteredOrders.forEach(order => {
+                if (order.paymentMethod.includes("كاش")) {
+                    const cashMatch = order.paymentMethod.match(/كاش: (\d+)/);
+                    if (cashMatch) totalCash += parseFloat(cashMatch[1]);
+                }
+                if (order.paymentMethod.includes("مدى")) {
+                    const madaMatch = order.paymentMethod.match(/مدى: (\d+)/);
+                    if (madaMatch) totalMada += parseFloat(madaMatch[1]);
+                }
+            });
+
+            // حساب أكثر المنتجات مبيعًا
+            const productStats = {};
+            filteredOrders.forEach(order => {
+                order.orders.forEach(item => {
+                    if (!productStats[item.product]) {
+                        productStats[item.product] = { count: 0, total: 0 };
+                    }
+                    productStats[item.product].count += item.count;
+                    productStats[item.product].total += item.price;
+                });
+            });
+
+            const productTableRows = Object.entries(productStats)
+                .sort((a, b) => b[1].count - a[1].count) // ترتيب حسب الكمية
+                .map(([product, stats]) => `
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 8px;">${product}</td>
+                        <td style="border: 1px solid #000; padding: 8px;">${stats.total.toFixed(2)} ريال</td>
+                        <td style="border: 1px solid #000; padding: 8px;">${stats.count}</td>
+                    </tr>
+                `).join('');
+
+            const reportHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2>تقرير الطلبات</h2>
+                    <p><strong>الفترة:</strong> من ${firstOrderDate} إلى ${lastOrderDate}</p>
+                    <p><strong>عدد الطلبات:</strong> ${totalOrders}</p>
+                    <p><strong>إجمالي الطلبات:</strong> ${totalAmount.toFixed(2)} ريال</p>
+                </div>
+                <table style="width: 50%; margin: auto; border-collapse: collapse; text-align: center; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="border: 1px solid #000; padding: 8px;">طريقة الدفع</th>
+                            <th style="border: 1px solid #000; padding: 8px;">الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #000; padding: 8px;">كاش</td>
+                            <td style="border: 1px solid #000; padding: 8px;">${totalCash.toFixed(2)} ريال</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #000; padding: 8px;">مدى</td>
+                            <td style="border: 1px solid #000; padding: 8px;">${totalMada.toFixed(2)} ريال</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="width: 100%; border-collapse: collapse; text-align: center; margin: 20px auto;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="border: 1px solid #000; padding: 8px;">المنتج</th>
+                            <th style="border: 1px solid #000; padding: 8px;">إجمالي الطلبات</th>
+                            <th style="border: 1px solid #000; padding: 8px;">العدد</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${productTableRows}
+                    </tbody>
+                </table>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="export-btn" style="padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px;">تصدير إلى Excel</button>
+                </div>
+            `;
+
+            Swal.fire({
+                title: 'تقرير الطلبات',
+                html: reportHTML,
+                width: '80%',
+                confirmButtonText: 'إغلاق'
+            });
+
+            // Add export functionality
+            document.getElementById('export-btn').addEventListener('click', () => {
+                const workbook = XLSX.utils.book_new();
+
+                // Summary sheet
+                const summaryData = [
+                    ["عدد الطلبات", totalOrders],
+                    ["إجمالي الطلبات", `${totalAmount.toFixed(2)} ريال`],
+                    ["إجمالي الكاش", `${totalCash.toFixed(2)} ريال`],
+                    ["إجمالي مدى", `${totalMada.toFixed(2)} ريال`],
+                    ["الفترة", `من ${firstOrderDate} إلى ${lastOrderDate}`]
+                ];
+                const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(workbook, summarySheet, "ملخص");
+
+                // Products sheet
+                const productData = [["المنتج", "إجمالي الطلبات", "العدد"]];
+                Object.entries(productStats).forEach(([product, stats]) => {
+                    productData.push([product, `${stats.total.toFixed(2)} ريال`, stats.count]);
+                });
+                const productSheet = XLSX.utils.aoa_to_sheet(productData);
+                XLSX.utils.book_append_sheet(workbook, productSheet, "المنتجات");
+
+                XLSX.writeFile(workbook, `تقرير_الطلبات ${firstOrderDate} إلى ${lastOrderDate}.xlsx`);
+            });
+        }
     });
 }
+
+
+
+// تأكد من ربط زر عرض التقرير بالدالة
+document.getElementById('show-report-btn').addEventListener('click', showReport);
+
 
 function editOrder() {
-    const orderNumber = parseInt(prompt("يرجى إدخال رقم الطلب المراد تعديله:"));
-    
-    if (isNaN(orderNumber)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: 'يرجى إدخال رقم طلب صالح!',
-            confirmButtonText: 'حسناً'
-        });
-        return;
-    }
+    Swal.fire({
+        title: 'تعديل طلب',
+        html: `
+            <label>أدخل رقم الطلب:</label>
+            <input type="number" id="order-number" style="width: 100%; padding: 10px; margin-bottom: 10px; font-size: 16px;">
+            <label>اختر تاريخ الطلب:</label>
+            <input type="date" id="order-date" style="width: 100%; padding: 10px; font-size: 16px;" value="${new Date().toISOString().split('T')[0]}">
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'تعديل الطلب',
+        cancelButtonText: 'إلغاء',
+        preConfirm: () => {
+            const orderNumber = parseInt(document.getElementById('order-number').value);
+            const orderDate = document.getElementById('order-date').value;
 
-    // قراءة الطلبات من localStorage
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const orderToEdit = orders.find(order => order.orderNumber === orderNumber);
+            if (isNaN(orderNumber) || !orderDate) {
+                Swal.showValidationMessage('يرجى إدخال رقم طلب وتاريخ صالحين!');
+                return false;
+            }
 
-    if (!orderToEdit) {
-        Swal.fire({
-            icon: 'error',
-            title: 'خطأ',
-            text: 'رقم الطلب غير موجود!',
-            confirmButtonText: 'حسناً'
-        });
-        return;
-    }
+            return { orderNumber, orderDate };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const { orderNumber, orderDate } = result.value;
 
-    // تخزين الطلب المعدل مؤقتًا في localStorage
-    localStorage.setItem('editOrder', JSON.stringify(orderToEdit));
+            // قراءة الطلبات من localStorage
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            const orderToEdit = orders.find(order => 
+                order.orderNumber === orderNumber && 
+                new Date(order.timestamp).toLocaleDateString('en-CA') === orderDate
+            );
 
-    // توجيه المستخدم إلى الصفحة الرئيسية لتحرير الطلب
-    window.location.href = 'index2.html';
+            if (!orderToEdit) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: `لم يتم العثور على طلب برقم ${orderNumber} بتاريخ ${orderDate}!`,
+                    confirmButtonText: 'حسناً'
+                });
+                return;
+            }
+
+            // تخزين الطلب المعدل مؤقتًا في localStorage
+            localStorage.setItem('editOrder', JSON.stringify(orderToEdit));
+
+            // توجيه المستخدم إلى الصفحة الرئيسية لتحرير الطلب
+            window.location.href = 'index.html';
+        }
+    });
 }
-
-
 
 function loadOrderToMainPage(order) {
     // مسح الجدول الحالي
@@ -316,134 +535,228 @@ function saveEditedOrder() {function saveEditedOrder() {
 
     alert(`تم حفظ التعديلات للطلب رقم ${editingOrder.orderNumber}.`);
 }
-
-        // وظيفة لتحميل الطلبات بناءً على التاريخ المحدد
 function filterOrdersByDate() {
-    const selectedDate = document.getElementById('filter-date').value;
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-const tableBody = document.getElementById('orders-body');
-
-orders.forEach((order) => {
-    console.log("Order Data:", order); // إضافة تسجيل للتأكد من وجود طريقة الدفع
-    const row = document.createElement('tr');
-
-    row.innerHTML = `
-        <td>${order.orderNumber}</td>
-        <td>${order.paymentMethod || "غير محدد"}</td>
-        <td>${order.totalPrice.toFixed(2)} ريال</td>
-        <td>${new Date(order.timestamp).toLocaleString()}</td>
-    `;
-
-    tableBody.appendChild(row);
-});
-
-        const detailsContainer = document.getElementById('orders-details-container');
-
-    // مسح المحتويات السابقة
-    mainTableBody.innerHTML = '';
-    detailsContainer.innerHTML = '';
-
-    // تصفية الطلبات بناءً على التاريخ
-    const filteredOrders = orders.filter(order => {
-        const orderDate = new Date(order.timestamp).toLocaleDateString('en-CA'); // تنسيق التاريخ للمقارنة
-        return orderDate === selectedDate;
-    });
-
-    if (filteredOrders.length === 0) {
-        alert("لا توجد طلبات لهذا التاريخ.");
+    const selectedDate = document.getElementById('filter-date').value; // الحصول على التاريخ من الحقل
+    if (!selectedDate) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'يرجى إدخال تاريخ للتصفية.',
+            confirmButtonText: 'حسناً'
+        });
         return;
     }
 
-    // عرض الطلبات المصفاة
-    filteredOrders.forEach(order => {
-        // 1. إضافة الطلب إلى الجدول الرئيسي
-        const mainRow = document.createElement('tr');
+    // تحويل التاريخ المحدد إلى منتصف الليل لصيغة دقيقة
+    const selectedDateStart = new Date(selectedDate);
+    selectedDateStart.setHours(0, 0, 0, 0);
 
-        // رقم الطلب
-        const orderNumberCell = document.createElement('td');
-        orderNumberCell.textContent = order.orderNumber;
+    const selectedDateEnd = new Date(selectedDate);
+    selectedDateEnd.setHours(23, 59, 59, 999);
 
-        // الإجمالي
-        const totalPriceCell = document.createElement('td');
-        totalPriceCell.textContent = `${order.totalPrice} ريال`;
+    const tableRows = document.querySelectorAll('#main-orders-table-body tr'); // جلب جميع الصفوف في الجدول
+    let foundOrders = false; // تحقق إذا كانت هناك طلبات ضمن التاريخ المحدد
 
-        // تاريخ الطلب
-        const dateCell = document.createElement('td');
-        const orderDate = new Date(order.timestamp);
-        dateCell.textContent = orderDate.toLocaleDateString();
+    tableRows.forEach(row => {
+        const orderDateCell = row.cells[3]; // خلية التاريخ في الجدول
+        const orderDate = new Date(orderDateCell.textContent.trim());
 
-        // وقت الطلب
-        const timeCell = document.createElement('td');
-        timeCell.textContent = orderDate.toLocaleTimeString();
-
-        mainRow.appendChild(orderNumberCell);
-        mainRow.appendChild(totalPriceCell);
-        mainRow.appendChild(dateCell);
-        mainRow.appendChild(timeCell);
-        mainTableBody.appendChild(mainRow);
-
-        // 2. إنشاء جدول تفاصيل الطلب
-        const detailsTable = document.createElement('table');
-        detailsTable.classList.add('details-table');
-
-        const detailsHeader = `
-            <thead>
-                <tr>
-                    <th>العدد</th>
-                    <th>المنتج</th>
-                    <th>السعر</th>
-                </tr>
-            </thead>
-        `;
-
-        const detailsBody = document.createElement('tbody');
-        order.orders.forEach(item => {
-            const detailsRow = document.createElement('tr');
-
-            // العدد
-            const countCell = document.createElement('td');
-            countCell.textContent = item.count;
-
-            // المنتج
-            const productCell = document.createElement('td');
-            productCell.textContent = item.product;
-
-            // السعر
-            const priceCell = document.createElement('td');
-            priceCell.textContent = item.price;
-
-            detailsRow.appendChild(countCell);
-            detailsRow.appendChild(productCell);
-            detailsRow.appendChild(priceCell);
-            detailsBody.appendChild(detailsRow);
-        });
-
-        // إضافة صف الإجمالي في نهاية التفاصيل
-        const totalRow = document.createElement('tr');
-        const totalLabelCell = document.createElement('td');
-        totalLabelCell.colSpan = 2;
-        totalLabelCell.textContent = 'الإجمالي';
-        const totalValueCell = document.createElement('td');
-        totalValueCell.textContent = `${order.totalPrice} ريال`;
-
-        totalRow.appendChild(totalLabelCell);
-        totalRow.appendChild(totalValueCell);
-        detailsBody.appendChild(totalRow);
-
-        // دمج الجدول
-        detailsTable.innerHTML = detailsHeader;
-        detailsTable.appendChild(detailsBody);
-
-        // إضافة جدول التفاصيل إلى الحاوية
-        const orderDetailsTitle = document.createElement('h3');
-        orderDetailsTitle.textContent = `تفاصيل الطلب رقم ${order.orderNumber}`;
-        detailsContainer.appendChild(orderDetailsTitle);
-        detailsContainer.appendChild(detailsTable);
+        // التحقق إذا كان تاريخ الطلب ضمن النطاق
+        if (orderDate >= selectedDateStart && orderDate <= selectedDateEnd) {
+            row.style.display = ''; // عرض الصف إذا تطابق
+            foundOrders = true;
+        } else {
+            row.style.display = 'none'; // إخفاء الصف إذا لم يتطابق
+        }
     });
+
+    if (!foundOrders) {
+        Swal.fire({
+            icon: 'info',
+            title: 'لا توجد طلبات',
+            text: 'لا توجد طلبات في التاريخ المحدد.',
+            confirmButtonText: 'حسناً'
+        });
+    }
 }
 
-// ربط زر الفلتر بالوظيفة
-document.getElementById('apply-filter-btn').addEventListener('click', filterOrdersByDate);
+// زر اليوم
+function setToday() {
+    const today = new Date();
+
+    // صياغة التاريخ بصيغة YYYY-MM-DD بدون UTC
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // الشهور تبدأ من 0
+    const day = String(today.getDate()).padStart(2, '0');
+
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // ضبط قيمة التقويم
+    document.getElementById('filter-date').value = formattedDate;
+
+    // استدعاء الدالة لتصفية الطلبات
+    filterOrdersByDate();
+
+    // تحديث النص المعروض أعلى الصفحة
+    const rangeDisplay = document.getElementById('range-display');
+    rangeDisplay.textContent = `التاريخ: ${formattedDate}`;
+}
+
+
+
+// زر الأمس
+function setYesterday() {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // صياغة التاريخ بصيغة YYYY-MM-DD بدون UTC
+    const year = yesterday.getFullYear();
+    const month = String(yesterday.getMonth() + 1).padStart(2, '0'); // الشهور تبدأ من 0
+    const day = String(yesterday.getDate()).padStart(2, '0');
+
+    const formattedYesterday = `${year}-${month}-${day}`;
+
+    // ضبط قيمة التقويم
+    document.getElementById('filter-date').value = formattedYesterday;
+
+    // استدعاء الدالة لتصفية الطلبات
+    filterOrdersByDate();
+
+    // تحديث النص المعروض أعلى الصفحة
+    const rangeDisplay = document.getElementById('range-display');
+    rangeDisplay.textContent = `التاريخ: ${formattedYesterday}`;
+}
+
+
+// زر قبل الأمس
+function setDayBeforeYesterday() {
+    const dayBeforeYesterday = new Date();
+    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
+
+    // صياغة التاريخ بصيغة YYYY-MM-DD بدون UTC
+    const year = dayBeforeYesterday.getFullYear();
+    const month = String(dayBeforeYesterday.getMonth() + 1).padStart(2, '0'); // الشهور تبدأ من 0
+    const day = String(dayBeforeYesterday.getDate()).padStart(2, '0');
+
+    const formattedDayBeforeYesterday = `${year}-${month}-${day}`;
+
+    // ضبط قيمة التقويم
+    document.getElementById('filter-date').value = formattedDayBeforeYesterday;
+
+    // استدعاء الدالة لتصفية الطلبات
+    filterOrdersByDate();
+
+    // تحديث النص المعروض أعلى الصفحة
+    const rangeDisplay = document.getElementById('range-display');
+    rangeDisplay.textContent = `التاريخ: ${formattedDayBeforeYesterday}`;
+}
+
+
+
+
+
+
+
+// زر هذا الأسبوع
+function setThisWeek() {
+    const today = new Date();
+
+    // حساب بداية ونهاية الأسبوع (الأحد بداية الأسبوع)
+    const firstDayOfWeek = new Date(today);
+    firstDayOfWeek.setDate(today.getDate() - today.getDay()); // بداية الأسبوع (الأحد)
+
+    const lastDayOfWeek = new Date(firstDayOfWeek);
+    lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6); // نهاية الأسبوع (السبت)
+
+    // صياغة بداية ونهاية الأسبوع بصيغة YYYY-MM-DD بدون UTC
+    const yearStart = firstDayOfWeek.getFullYear();
+    const monthStart = String(firstDayOfWeek.getMonth() + 1).padStart(2, '0');
+    const dayStart = String(firstDayOfWeek.getDate()).padStart(2, '0');
+    const formattedStartDate = `${yearStart}-${monthStart}-${dayStart}`;
+
+    const yearEnd = lastDayOfWeek.getFullYear();
+    const monthEnd = String(lastDayOfWeek.getMonth() + 1).padStart(2, '0');
+    const dayEnd = String(lastDayOfWeek.getDate()).padStart(2, '0');
+    const formattedEndDate = `${yearEnd}-${monthEnd}-${dayEnd}`;
+
+    // استدعاء الدالة لتصفية الطلبات بناءً على النطاق
+    filterOrdersByRange(firstDayOfWeek, lastDayOfWeek);
+
+    // تحديث النص المعروض أعلى الصفحة
+    const rangeDisplay = document.getElementById('range-display');
+    rangeDisplay.textContent = `الفترة: ${formattedStartDate} إلى ${formattedEndDate}`;
+}
+
+
+
+
+
+// زر هذا الشهر
+function setThisMonth() {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    document.getElementById('filter-date').value = ''; // تفريغ حقل التاريخ
+    filterOrdersByRange(firstDayOfMonth, lastDayOfMonth);
+
+    // تحديث النص المعروض أعلى الصفحة
+    const rangeDisplay = document.getElementById('range-display');
+    rangeDisplay.textContent = `الفترة: ${formatDate(firstDayOfMonth)} إلى ${formatDate(lastDayOfMonth)}`;
+}
+
+// دالة لتنسيق التاريخ (dd/mm/yyyy)
+function formatDate(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // الأشهر تبدأ من 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+
+// تصفية حسب النطاق الزمني
+function filterOrdersByRange(startDate, endDate) {
+    const tableRows = document.querySelectorAll('#main-orders-table-body tr'); // جلب جميع الصفوف في الجدول
+    let foundOrders = false; // تحقق إذا كانت هناك طلبات ضمن الفترة المحددة
+
+    // ضبط التواريخ إلى بداية اليوم (تجاهل الوقت)
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    tableRows.forEach(row => {
+        const orderDateCell = row.cells[3]; // خلية التاريخ في الجدول
+        const orderDate = new Date(orderDateCell.textContent.trim());
+        orderDate.setHours(0, 0, 0, 0); // تجاهل الوقت من تاريخ الطلب
+
+        // التحقق إذا كان تاريخ الطلب ضمن النطاق المحدد
+        if (orderDate >= start && orderDate <= end) {
+            row.style.display = ''; // عرض الصف إذا كان ضمن النطاق
+            foundOrders = true;
+        } else {
+            row.style.display = 'none'; // إخفاء الصف إذا لم يكن ضمن النطاق
+        }
+    });
+
+    if (!foundOrders) {
+        Swal.fire({
+            icon: 'info',
+            title: 'لا توجد طلبات',
+            text: 'لا توجد طلبات في الفترة المحددة.',
+            confirmButtonText: 'حسناً'
+        });
+    }
+}
+
+
+// ربط الفلترة بحقل التاريخ
+document.getElementById('filter-date').addEventListener('change', filterOrdersByDate);
+
+
+
+
+
 
 function loadOrders() {
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
@@ -464,18 +777,28 @@ function loadOrders() {
 
         // طريقة الدفع
         const paymentMethodCell = document.createElement('td');
-        let paymentDetails = '';
-        if (order.payment) {
-            if (order.payment.mada > 0) {
-                paymentDetails += `مدى: ${order.payment.mada} ريال<br>`;
-            }
-            if (order.payment.cash > 0) {
-                paymentDetails += `كاش: ${order.payment.cash} ريال`;
-            }
+        let paymentDetails = 'غير معين';
+
+// التحقق من وجود بيانات الدفع
+if (order.paymentMethod) {
+    // عرض طريقة الدفع بناءً على البيانات المخزنة
+    paymentDetails = order.paymentMethod;
+} else if (order.payment) {
+    if (order.payment.mada > 0) {
+        paymentDetails = `مدى: ${order.payment.mada} ريال`;
+    }
+    if (order.payment.cash > 0) {
+        if (paymentDetails !== 'غير الغير') {
+            paymentDetails += '، ';
         } else {
-            paymentDetails = 'غير محدد';
+            paymentDetails = '';
         }
-        paymentMethodCell.innerHTML = paymentDetails;
+        paymentDetails += `كاش: ${order.payment.cash} ريال`;
+    }
+}
+
+// تعيين طريقة الدفع في الخلية
+paymentMethodCell.innerHTML = paymentDetails;
 
         // إضافة الأعمدة إلى الصف
         row.appendChild(orderNumberCell);
@@ -505,20 +828,32 @@ function loadOrders() {
         const totalPriceCell = document.createElement('td');
         totalPriceCell.textContent = `${order.totalPrice} ريال`;
 
+       
         // طريقة الدفع
         const paymentMethodCell = document.createElement('td');
-        let paymentDetails = '';
-        if (order.payment) {
-            if (order.payment.mada > 0) {
-                paymentDetails += `مدى: ${order.payment.mada} ريال<br>`;
-            }
-            if (order.payment.cash > 0) {
-                paymentDetails += `كاش: ${order.payment.cash} ريال`;
-            }
+        let paymentDetails = 'غير معروف';
+
+// التحقق من وجود بيانات الدفع
+if (order.paymentMethod) {
+    // عرض طريقة الدفع بناءً على البيانات المخزنة
+    paymentDetails = order.paymentMethod;
+} else if (order.payment) {
+    if (order.payment.mada > 0) {
+        paymentDetails = `مدى: ${order.payment.mada} ريال`;
+    }
+    if (order.payment.cash > 0) {
+        if (paymentDetails !== 'غير محدود') {
+            paymentDetails += '، ';
         } else {
-            paymentDetails = 'غير محدد';
+            paymentDetails = '';
         }
-        paymentMethodCell.innerHTML = paymentDetails;
+        paymentDetails += `كاش: ${order.payment.cash} ريال`;
+    }
+}
+
+// تعيين طريقة الدفع في الخلية
+paymentMethodCell.innerHTML = paymentDetails;
+
 
         // تاريخ الطلب
         const dateCell = document.createElement('td');
@@ -546,13 +881,14 @@ function loadOrders() {
         };
         printCell.appendChild(printButton);
 
-        // حذف الطلب
-        const deleteCell = document.createElement('td');
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'حذف';
-        deleteButton.classList.add('delete-btn');
-        deleteButton.onclick = () => deleteOrder(index);
-        deleteCell.appendChild(deleteButton);
+       // حذف الطلب
+const deleteCell = document.createElement('td');
+const deleteButton = document.createElement('button');
+deleteButton.textContent = 'حذف';
+deleteButton.classList.add('delete-btn');
+deleteButton.onclick = () => deleteOrder(order.orderNumber, order.timestamp); // تمرير الطابع الزمني
+deleteCell.appendChild(deleteButton);
+
 
         // إضافة الأعمدة إلى الصف
         mainRow.appendChild(orderNumberCell);
@@ -587,26 +923,84 @@ function loadOrders() {
         // استدعاء تحميل الطلبات عند فتح الصفحة
         loadOrders();
  
-        function deleteOrder(index) {
-    const confirmation = confirm("هل أنت متأكد أنك تريد حذف هذا الطلب؟");
-    if (confirmation) {
-        const orders = JSON.parse(localStorage.getItem('orders')) || [];
-        orders.splice(index, 1); // حذف الطلب من المصفوفة
-        localStorage.setItem('orders', JSON.stringify(orders)); // تحديث localStorage
-        location.reload(); // إعادة تحميل الصفحة لتحديث الجدول
-    }
+        function deleteOrder(orderNumber, orderTimestamp) {
+    Swal.fire({
+        title: 'هل أنت متأكد؟',
+        text: 'لا يمكن استعادة الطلب بعد الحذف!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذف الطلب',
+        cancelButtonText: 'إلغاء',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // جلب الطلبات من localStorage
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+            // العثور على الطلب بناءً على رقم الطلب والطابع الزمني
+            const orderIndex = orders.findIndex(order => 
+                order.orderNumber === orderNumber &&
+                new Date(order.timestamp).toISOString() === orderTimestamp
+            );
+
+            if (orderIndex === -1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'لم يتم العثور على الطلب!',
+                    confirmButtonText: 'حسناً'
+                });
+                return;
+            }
+
+            // حذف الطلب من القائمة
+            const deletedOrder = orders.splice(orderIndex, 1);
+
+            // تحديث الطلبات المحفوظة في localStorage
+            localStorage.setItem('orders', JSON.stringify(orders));
+
+            // إضافة الطلب إلى قائمة الطلبات المحذوفة
+            const deletedOrders = JSON.parse(localStorage.getItem('deletedOrders')) || [];
+            deletedOrder[0].deletionTimestamp = new Date().toISOString();
+            deletedOrders.push(deletedOrder[0]);
+            localStorage.setItem('deletedOrders', JSON.stringify(deletedOrders));
+
+            // إعادة تحميل الصفحة لتحديث الجدول
+            location.reload();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'تم حذف الطلب!',
+                text: 'تم حذف الطلب بنجاح.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire({
+                icon: 'info',
+                title: 'تم الإلغاء',
+                text: 'لم يتم حذف الطلب.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    });
 }
 
-   
 
 
 function showOrderDetailsWithSweetAlert(order) {
+   // استخراج التاريخ والوقت
+   const orderDate = new Date(order.timestamp).toLocaleDateString();
+   const orderTime = new Date(order.timestamp).toLocaleTimeString();
+
    // إنشاء نسخة من الجدول
    let tableHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="https://i.postimg.cc/g2GmHSFp/bangalogo.png" alt="شعار" style="width: 100px; margin-bottom: 10px;">
             <h2>فاتورة الطلب</h2>
             <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
+            <p><strong>تاريخ الطلب:</strong> ${orderDate} | <strong>وقت الطلب:</strong> ${orderTime}</p>
         </div>
         <table style="width: 100%; border-collapse: collapse; text-align: center; margin: 20px auto;">
             <thead>
@@ -634,10 +1028,10 @@ function showOrderDetailsWithSweetAlert(order) {
         </table>
         <div style="text-align: center; margin-top: 20px;">
             <p><strong>الإجمالي:</strong> ${order.totalPrice} ريال</p>
-            <p><strong>طريقة الدفع:</strong> ${order.paymentMethod || 'غير محدد'}</p>
+            <p><strong>طريقة الدفع:</strong> ${order.paymentMethod || 'غير معروفة'}</p>
         </div>
         <div style="text-align: center; margin-top: 20px;">
-            <p>شكراً لتعاملكم معنا</p>
+            <p>بالعافية عليك .. ننتظرك تنورنا في فرعنا في الهفوف - حي الحوراء بالقرب من دوار التميمي وبنده</p>
         </div>
     `;
 
@@ -655,9 +1049,6 @@ function showOrderDetailsWithSweetAlert(order) {
         }
     });
 }
-
-    
-
 
 document.getElementById('show-report-btn').addEventListener('click', showOrderDetailsWithSweetAlert);
 
@@ -694,50 +1085,302 @@ document.getElementById('show-report-btn').addEventListener('click', showOrderDe
 
 
 
+    function printInvoice(order) {
+    // استخراج التاريخ والوقت
+    const orderDate = new Date(order.timestamp).toLocaleDateString();
+    const orderTime = new Date(order.timestamp).toLocaleTimeString();
 
-
-
-function printInvoice(order) {
-    const printContent = `
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://i.postimg.cc/g2GmHSFp/bangalogo.png" alt="شعار" style="width: 100px; margin-bottom: 10px;">
-            <h2>فاتورة الطلب</h2>
-            <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; text-align: center; margin: 20px auto;">
-            <thead>
-                <tr style="background-color: #f2f2f2;">
-                    <th style="border: 1px solid #000; padding: 8px;">العدد</th>
-                    <th style="border: 1px solid #000; padding: 8px;">المنتج</th>
-                    <th style="border: 1px solid #000; padding: 8px;">السعر</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${order.orders.map(item => `
-                    <tr>
-                        <td style="border: 1px solid #000; padding: 8px;">${item.count}</td>
-                        <td style="border: 1px solid #000; padding: 8px;">${item.product}</td>
-                        <td style="border: 1px solid #000; padding: 8px;">${item.price} ريال</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        <div style="text-align: center; margin-top: 20px;">
-            <p><strong>الإجمالي:</strong> ${order.totalPrice} ريال</p>
-            <p><strong>طريقة الدفع:</strong> ${order.paymentMethod || 'غير محدد'}</p>
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-            <p>شكراً لتعاملكم معنا</p>
-        </div>
-    `;
-
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent;
-    window.print();
-    document.body.innerHTML = originalContent;
-    location.reload(); // تحديث الصفحة
-
+    function getTotalPaid(orderNumber) {
+    const totalPaid = localStorage.getItem(`totalPaid-${orderNumber}`);
+    if (totalPaid !== null) {
+        console.log(`المبلغ المدفوع للطلب ${orderNumber}: ${totalPaid} ريال`);
+        return parseFloat(totalPaid); // إرجاع القيمة كعدد
+    } else {
+        console.log(`لا توجد بيانات مدفوعة لهذا الطلب: ${orderNumber}`);
+        return 0; // إذا لم توجد بيانات
+    }
 }
+const orderNumber = parseInt(document.getElementById('order-number'));
+
+
+
+    // استخراج المبلغ الإجمالي المدفوع والمبلغ الكلي
+    const totalAmount = order.totalPrice || 0; // المبلغ الكلي للطلب
+
+
+
+    // إضافة عبارة المتبقي إذا كان المبلغ المدفوع أكبر من الإجمالي
+    let remainingMessage = "";
+    const totalPaid = localStorage.getItem(`totalPaid-${order.orderNumber}`);
+
+
+    if (totalPaid > totalAmount) {
+        const remaining = totalPaid - totalAmount;
+        remainingMessage = `<p style="color: red; font-weight: bold;">المبلغ المدفوع : ${totalPaid}  ريال
+         المتبقي للعميل: ${remaining} ريال</p>`;
+    }
+    console.log( {totalPaid});
+    console.log( {totalAmount});
+
+    const logo = new Image();
+    logo.src = "https://i.postimg.cc/g2GmHSFp/bangalogo.png";
+
+    logo.onload = function () {
+        const printContent = `
+        <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; direction: rtl; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin: auto; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    <div style="text-align: center;">
+                        <img src="${logo.src}" alt="شعار" style="width: 100px; margin-bottom: 10px;">
+                        <p style="font-size: 12px;">
+                            <strong>تاريخ الطلب:</strong> ${orderDate} |
+                            <strong>وقت الطلب:</strong> ${orderTime}
+                        </p>
+                    </div>
+                    <table>
+                    <thead>
+                        <td colspan="3" style="font-weight: bold; font-size:20px;">رقم الطلب:  ${order.orderNumber}</td>
+
+                        <tr>
+                            <th>العدد</th>
+                            <th>المنتج</th>
+                            <th>السعر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+
+                        ${order.orders.map(item => `
+                            <tr>
+                                <td>${item.count}</td>
+                                <td>${item.product}</td>
+                                <td>${item.price} ريال</td>
+                            </tr>
+                        `).join('')}
+                        <tr>
+                            <td colspan="3" style="font-weight: bold;">الإجمالي: ${totalAmount} ريال</td>
+                        </tr>
+                    </tbody>
+                </table>
+                   
+                    <div style="text-align: center; margin-top: 20px;">
+        <strong>طريقة الدفع:</strong><br>
+        ${order.paymentMethod}
+        
+    </div>
+    
+   ${ remainingMessage}
+    
+                    <div style="text-align: center; margin-top: 20px;">
+        <p style="font-weight: bold;">
+            بالعافية عليك .. ننتظرك تنورنا في فرع بنقا في الهفوف - حي الحوراء بالقرب من دوار التميمي وبنده
+        </p>
+    </div>
+    
+                </body>
+                </html>
+            `;
+        const originalContent = document.body.innerHTML;
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload(); // تحديث الصفحة
+    };
+
+    logo.onerror = function () {
+        alert("تعذر تحميل الشعار. يرجى التحقق من الرابط.");
+    };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function returnToHome() {
+    window.location.href = 'index.html'; // ضع اسم صفحة الرئيسية هنا
+}
+function requestPassword() {
+    Swal.fire({
+        title: 'أدخل كلمة المرور لعرض التقرير',
+        input: 'password',
+        inputPlaceholder: 'أدخل كلمة المرور',
+        showCancelButton: true,
+        cancelButtonText: 'إلغاء',
+        confirmButtonText: 'عرض التقرير',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'يرجى إدخال كلمة المرور!';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const password = result.value;
+            if (password === '1234') { // استبدل "1234" بكلمة المرور الصحيحة
+                showReport(); // استدعاء دالة عرض التقرير
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'كلمة المرور غير صحيحة!',
+                    confirmButtonText: 'حسناً'
+                });
+            }
+        }
+    });
+}
+
+
+
+
+
+
+    function exportToExcel() {
+        const orders = JSON.parse(localStorage.getItem('orders')) || [];
+        if (orders.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'لا توجد طلبات',
+                text: 'لا توجد طلبات محفوظة لتنزيلها.',
+                confirmButtonText: 'حسناً'
+            });
+            return;
+        }
+
+        // إعداد محتوى الملف المنظم
+        let excelContent = `"رقم الطلب","التاريخ","الوقت","طريقة الدفع","الإجمالي","المنتجات"\n`; // رؤوس الأعمدة
+        orders.forEach(order => {
+            const products = order.orders.map(item => `${item.product} (${item.count})`).join(', '); // تنسيق المنتجات
+            const orderDate = new Date(order.timestamp).toLocaleDateString(); // استخراج التاريخ فقط
+            const orderTime = new Date(order.timestamp).toLocaleTimeString(); // استخراج الوقت فقط
+            const paymentMethod = order.paymentMethod.replace(/<br>/g, ', '); // تنسيق طريقة الدفع
+            excelContent += `"${order.orderNumber}","${orderDate}","${orderTime}","${paymentMethod}","${order.totalPrice}","${products}"\n`;
+        });
+
+        // إنشاء ملف باستخدام ترميز UTF-8
+        const blob = new Blob([`\ufeff${excelContent}`], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const todayDate = new Date().toLocaleDateString('en-CA'); // تنسيق التاريخ YYYY-MM-DD
+a.download = `الطلبات-المحفوظة-${todayDate}.csv`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+
+
+
+    function loadOrdersSortedByDate() {
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const mainTableBody = document.getElementById('main-orders-table-body');
+    const detailsContainer = document.getElementById('orders-details-container');
+
+    // فرز الطلبات بناءً على التاريخ
+    const sortedOrders = orders.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    // مسح البيانات الحالية
+    mainTableBody.innerHTML = '';
+    detailsContainer.innerHTML = '';
+
+    // عرض الطلبات المرتبة
+    sortedOrders.forEach((order, index) => {
+        const mainRow = document.createElement('tr');
+
+        // رقم الطلب
+        const orderNumberCell = document.createElement('td');
+        orderNumberCell.textContent = order.orderNumber;
+
+        // الإجمالي
+        const totalPriceCell = document.createElement('td');
+        totalPriceCell.textContent = `${order.totalPrice} ريال`;
+
+        // طريقة الدفع
+        const paymentMethodCell = document.createElement('td');
+        paymentMethodCell.innerHTML = order.paymentMethod || 'غير معروف';
+
+        // تاريخ الطلب
+        const dateCell = document.createElement('td');
+        const orderDate = new Date(order.timestamp);
+        dateCell.textContent = orderDate.toLocaleDateString('en-CA');
+
+        // وقت الطلب
+        const timeCell = document.createElement('td');
+        timeCell.textContent = orderDate.toLocaleTimeString();
+
+        // تفاصيل الطلب
+        const detailsCell = document.createElement('td');
+        const detailsButton = document.createElement('button');
+        detailsButton.textContent = 'عرض';
+        detailsButton.onclick = () => {
+            showOrderDetailsWithSweetAlert(order);
+        };
+        detailsCell.appendChild(detailsButton);
+
+        // طباعة الطلب
+        const printCell = document.createElement('td');
+        const printButton = document.createElement('button');
+        printButton.textContent = 'طباعة';
+        printButton.onclick = () => {
+            printInvoice(order);
+        };
+        printCell.appendChild(printButton);
+
+       // حذف الطلب
+const deleteCell = document.createElement('td');
+const deleteButton = document.createElement('button');
+deleteButton.textContent = 'حذف';
+deleteButton.classList.add('delete-btn');
+deleteButton.onclick = () => deleteOrder(order.orderNumber, order.timestamp); // تمرير الطابع الزمني
+deleteCell.appendChild(deleteButton);
+
+
+        // إضافة الأعمدة إلى الصف
+        mainRow.appendChild(orderNumberCell);
+        mainRow.appendChild(totalPriceCell);
+        mainRow.appendChild(paymentMethodCell);
+        mainRow.appendChild(dateCell);
+        mainRow.appendChild(timeCell);
+        mainRow.appendChild(detailsCell);
+        mainRow.appendChild(printCell);
+        mainRow.appendChild(deleteCell);
+
+        // إضافة الصف إلى الجدول
+        mainTableBody.appendChild(mainRow);
+    });
+}
+
+
+
+
+
+function formatDate(date) {
+    const day = String(date.getDate()).padStart(2, '0'); // إضافة صفر إذا كان اليوم أقل من 10
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // الأشهر تبدأ من 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+
+
 
 
  </script>
