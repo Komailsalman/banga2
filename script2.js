@@ -1376,3 +1376,20 @@ function addNewOrderToLivePage(order) {
         livePage.addNewOrder(order); // استدعاء الدالة لإضافة الطلب الجديد
     }
 }
+
+
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB1gEIPMXcgTBu4jJ6_Et-xGZrmTFpo4YY",
+  authDomain: "bangadata-9c1c6.firebaseapp.com",
+  projectId: "bangadata-9c1c6",
+  storageBucket: "bangadata-9c1c6.firebasestorage.app",
+  messagingSenderId: "1087259460163",
+  appId: "1:1087259460163:web:a9afee486a6213b6378af6",
+  measurementId: "G-YJMX7YZRLX"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
