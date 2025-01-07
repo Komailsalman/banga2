@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "YOUR_DATABASE_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+  };
+  const app = firebase.initializeApp(firebaseConfig);
+  const database = firebase.database(app);
+</script>
+
 <!-- رابط CSS لـ SweetAlert2 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
@@ -427,7 +443,7 @@ function editOrder() {
             localStorage.setItem('editOrder', JSON.stringify(orderToEdit));
 
             // توجيه المستخدم إلى الصفحة الرئيسية لتحرير الطلب
-            window.location.href = 'index.html';
+            window.location.href = 'index2.html';
         }
     });
 }
@@ -1129,6 +1145,22 @@ const orderNumber = parseInt(document.getElementById('order-number'));
         const printContent = `
         <html>
                 <head>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "YOUR_DATABASE_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+  };
+  const app = firebase.initializeApp(firebaseConfig);
+  const database = firebase.database(app);
+</script>
+
                     <style>
                         body { font-family: Arial, sans-serif; direction: rtl; text-align: center; }
                         table { width: 100%; border-collapse: collapse; margin: auto; }
@@ -1214,7 +1246,7 @@ const orderNumber = parseInt(document.getElementById('order-number'));
 
 
 function returnToHome() {
-    window.location.href = 'index.html'; // ضع اسم صفحة الرئيسية هنا
+    window.location.href = 'index2.html'; // ضع اسم صفحة الرئيسية هنا
 }
 function requestPassword() {
     Swal.fire({
@@ -1386,5 +1418,4 @@ function formatDate(date) {
  </script>
 </body>
 </html>
-
 
