@@ -1,5 +1,16 @@
+@font-face {
+    font-family: 'ShamelFamily'; 
+    src: url('fonts/ShamelFamily.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    font-family: 'ShamelFamily', Arial, sans-serif ;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'ShamelFamily', Arial, sans-serif; /* استبدل Arial بخط بديل إذا لم يتم تحميل الخط */
     direction: rtl;
     text-align: center;
     margin: 20px;
@@ -14,7 +25,7 @@ header {
 }
 
 .buttons-table {
-    width: 90%;
+    width:90%;
     table-layout: fixed;
 }
 
@@ -25,10 +36,10 @@ header {
 
 button {
     padding: 10px 15px; /* مسافة داخلية للنص */
-    font-size: 20px; /* حجم الخط */
+    font-size: 17px; /* حجم الخط */
     cursor: pointer; /* تغيير المؤشر عند التمرير */
     border: 1px solid #ccc; /* إطار خفيف */
-    background-color: #f0f0f0; /* لون الخلفية الافتراضي */
+    background-color: #ffffff; /* لون الخلفية الافتراضي */
     transition: background-color 0.3s, transform 0.2s; /* انتقال ناعم عند التفاعل */
     width: 100%; /* عرض الزر يمتد بالكامل داخل الحاوية */
     height: 80px; /* تحديد ارتفاع الزر */
@@ -40,7 +51,7 @@ button {
 
 #button1 {
     padding: 10px 15px;
-    font-size: 14px;
+    font-size: 20px;
     cursor: pointer;
     border: 1px solid #ccc;
     background-color: #f0f0f0;
@@ -58,7 +69,7 @@ button:hover {
         width: 60%;
         font-size: 20px;
 
-    background-color: #4CAF50;
+    background-color: #ffb20c;
     color: white;
 }
 
@@ -66,7 +77,7 @@ button:hover {
    width: 60%;
    font-size: 16px;
    height: 40px;
-    background-color: #f44336;
+    background-color: #d44e44;
     color: white;
 }
 
@@ -79,6 +90,7 @@ table {
     margin: 0 auto;
     border-collapse: collapse;
     border: 0px solid #ccc;
+    
 }
 table th:first-child,
 table td:first-child {
@@ -93,10 +105,15 @@ tss {
     text-align: center;
 }
 
-
 th, td {
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 0px solid #ccc;
+    text-align: center; }
+
+    
+th, td {
+    padding: 10px;
+    border: 0px solid #ccc;
     text-align: center; }
 
 th {
@@ -140,12 +157,13 @@ tfoot td {
         font-size: 14px;
     }
 
-    table #custom-row {
+ #custom-row {
         background-color: #353535;
         font-weight: bold;
         text-align: center;
         font-size: 16px;
         padding: 10px;
+        
     }
 
     #total-row {
@@ -169,8 +187,8 @@ tfoot td {
 
 }
 @media print {
-    body {
-        font-family: Arial, sans-serif;
+    body, h1, p,h1,table {
+        font-family: 'Arial', sans-serif !important; /* خط الطباعة */
         direction: rtl;
 
     }
@@ -182,6 +200,8 @@ tfoot td {
     }
 
     table {
+        font-family: 'Arial', sans-serif !important; /* خط الطباعة */
+
         width: 100%;
         table-layout: auto; /* السماح للأعمدة بتكييف عرضها حسب المحتوى */
         border-collapse: collapse;
@@ -189,7 +209,9 @@ tfoot td {
         border: 1px solid #000;
 
     }
- 
+    #printContent {
+        font-family: Arial, sans-serif !important; /* خط الفاتورة */
+    }
     
     .product-name {
     white-space: nowrap; /* يمنع النص من الانقسام إلى سطرين */
@@ -237,7 +259,6 @@ td {
 .main-content {
     flex: 3; /* عرض القسم الرئيسي: 75% */
     background-color: #f9f9f9;
-    padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
 }
@@ -305,15 +326,14 @@ td {
 
 .full-width-message {
     width: 100%; /* تأخذ عرض الصفحة بالكامل */
-    background-color: #ffa500; /* لون خلفية برتقالي */
-    color: #fff; /* لون النص أبيض */
+    background-color: #ffb20c; /* لون خلفية برتقالي */
+    color: #000000; /* لون النص أبيض */
     text-align: center; /* محاذاة النص في المنتصف */
-    padding: 15px 0; /* مسافة داخلية */
-    font-size: 18px; /* حجم الخط */
+    padding: 50px 0; /* مسافة داخلية */
+    font-size: 30px; /* حجم الخط */
     font-weight: bold; /* جعل النص عريض */
     border: none; /* إزالة الإطار */
     margin-bottom: 20px; /* مسافة أسفل العبارة */
-    border-radius: 5px; /* زوايا مستديرة قليلاً */
 }
 .edit-btn {
     background-color: #007BFF; /* لون خلفية أزرق */
@@ -367,11 +387,8 @@ td {
     background-color: #e0a800;
 }
 @media print {
-
-
     /* التأكد من عرض العناصر المطبوعة بشكل جيد */
-    body {
-        font-family: Arial, sans-serif;
+    body, h1, p,h1,table {
         direction: rtl;
         text-align: center;
     }
@@ -379,12 +396,17 @@ td {
 
 
     th, td {
+        font-family: 'Arial', sans-serif !important; /* خط الطباعة */
         border: 1px solid #000;
         padding: 8px;
         text-align: center;
         white-space: nowrap; /* منع النصوص من الانقسام إلى أكثر من سطر */
 
     }
+    #invoice {
+        font-family: Arial, sans-serif !important; /* خط الفاتورة */
+    }
+
 }
 
 
@@ -419,12 +441,12 @@ td {
 }
 
 .plus-btn {
-    background-color: #28a745; /* لون أخضر */
+    background-color: #41a0be; /* لون أخضر */
     color: white;
 }
 
 .minus-btn {
-    background-color: #dc3545; /* لون أحمر */
+    background-color: #d44e44; /* لون أحمر */
     color: white;
 }
 
@@ -501,20 +523,102 @@ td {
     background-color: #d7945e;
 }
 
-#print-order-btn {
-    background-color: #5f5f5f; /* اللون الأزرق */
-    color: white; /* لون النص */
-    font-size: 16px; /* حجم النص */
-    font-weight: bold; /* النص عريض */
-    padding: 10px 20px; /* مساحة داخلية */
-    border: none; /* إزالة الإطار */
-    border-radius: 5px; /* زوايا مستديرة */
-    cursor: pointer; /* إظهار مؤشر اليد عند التمرير */
-    transition: background-color 0.3s ease; /* تأثير الانتقال عند التفاعل */
-    margin: 10px; /* مسافة حول الزر */
-    width: 50%;
+
+
+
+
+
+.custom-order-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+    direction: rtl;
+    text-align: center;
+    
 }
 
-#print-order-btn:hover {
-    background-color: #0056b3; /* لون عند التمرير */
+.custom-order-table th, 
+.custom-order-table td {
+    border: 1px solid #000;
+    padding: 8px;
+    
+}
+
+.custom-order-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    font-size: 16px;
+    
+}
+
+.custom-order-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+    
+}
+
+.custom-order-table tfoot td {
+    font-weight: bold;
+    background-color: #f2f2f2;
+    text-align: center;
+    
+}
+
+
+
+.custom-order-table #total-row {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    
+}
+
+
+
+.note-btn {
+    padding: 10px 15px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.note-btn:hover {
+    background-color: #ddd;
+}
+
+.note-btn.selected {
+    background-color: #6d66d9;
+    color: white;
+    border-color: #6d66d9;
+}
+
+
+
+
+.custom-button {
+    background-color: transparent; /* خلفية شفافة */
+    color: #ffffff; /* لون النص */
+    border: none; /* إزالة الحدود */
+    border-radius: 0px; /* زوايا دائرية */
+    width: auto; /* العرض يناسب النص */
+    padding: 5px 10px; /* تباعد داخلي */
+    text-align: center; /* توسيط النص */
+    font-size: 15px; /* حجم الخط */
+    box-shadow: none; /* إزالة الظلال */
+    cursor: pointer; /* مؤشر الفأرة عند التمرير */
+}
+
+/* عند تمرير الفأرة على الزر */
+.custom-button:hover {
+    background-color: #ffcf3e; /* لون مختلف عند التمرير */
+}
+
+/* ترتيب الأزرار بجانب بعضها */
+.buttons-container {
+    display: flex; /* جعل الأزرار بجانب بعضها */
+    gap: 10px; /* مسافة بين الأزرار */
+    justify-content: center; /* توسيط الأزرار */
+    flex-wrap: wrap; /* السماح بالتفاف الأزرار */
 }
