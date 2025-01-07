@@ -225,7 +225,7 @@ console.log(localStorage.getItem(`totalPaid-${orderNumber}`));
 
 
     // حفظ طريقة الدفع في الطلب الحالي
-    const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    const previousOrders = JSON.parse(firebase.database().ref('orders').once('value').then(snapshot => snapshot.val())) || [];
     const totalOrders = previousOrders.length;
     const totalItems = Array.from(printTable.querySelectorAll("tbody tr")).reduce((sum, row) => {
         const countCell = row.cells[0]; // عمود العدد
@@ -396,7 +396,7 @@ rebindEvents(); // إعادة تعيين الأحداث
 
 function updateOrderNumber() {
     const today = new Date().toLocaleDateString(); // تاريخ اليوم بصيغة قابلة للمقارنة
-    const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    const previousOrders = JSON.parse(firebase.database().ref('orders').once('value').then(snapshot => snapshot.val())) || [];
 
     // تصفية الطلبات حسب تاريخ اليوم
     const todaysOrders = previousOrders.filter(order => {
@@ -461,7 +461,7 @@ function saveOrdersToLocalStorage() {
         notes: row.dataset.notes || "بدون ملاحظات" // حفظ الملاحظات
     }));
 
-    const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    const previousOrders = JSON.parse(firebase.database().ref('orders').once('value').then(snapshot => snapshot.val())) || [];
     const orderNumber = parseInt(document.getElementById('order-number').textContent);
     const totalPrice = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', ''));
 
@@ -808,7 +808,7 @@ function saveEditedOrder() {
     const totalPrice = parseFloat(document.getElementById('total-price').textContent.replace(' ريال', ''));
     const orderNumber = parseInt(document.getElementById('order-number').textContent);
 
-    const savedOrders = JSON.parse(localStorage.getItem('orders'))    || [];
+    const savedOrders = JSON.parse(firebase.database().ref('orders').once('value').then(snapshot => snapshot.val()))    || [];
     console.log("Saved Orders:", savedOrders);
 
     const updatedOrderIndex = savedOrders.findIndex(order => order.orderNumber === orderNumber);
@@ -919,7 +919,7 @@ document.getElementById('print-order-btn').addEventListener('click', () => {
 });
 
 function printLastOrder() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const orders = JSON.parse(firebase.database().ref('orders').once('value').then(snapshot => snapshot.val())) || [];
     if (orders.length === 0) {
         Swal.fire({
             icon: 'error',
@@ -939,7 +939,7 @@ function printLastOrder() {
 
 function printLastOrder() {
     // الحصول على جميع الطلبات من localStorage
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const orders = JSON.parse(firebase.database().ref('orders').once('value').then(snapshot => snapshot.val())) || [];
 
     // إذا لم تكن هناك طلبات
     if (orders.length === 0) {
@@ -1260,7 +1260,7 @@ function printDirectlyWithDate() {
                     remainingMessage = `<p style="color: red; font-weight: bold;">المتبقي للعميل: ${remaining} ريال</p>`;
                 }
     
-                const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+                const previousOrders = JSON.parse(firebase.database().ref('orders').once('value').then(snapshot => snapshot.val())) || [];
     
                 const newOrder = {
                     orderNumber: orderNumber,
@@ -1376,6 +1376,9 @@ function addNewOrderToLivePage(order) {
         livePage.addNewOrder(order); // استدعاء الدالة لإضافة الطلب الجديد
     }
 }
+
+
+
 
 
 
