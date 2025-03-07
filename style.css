@@ -1,0 +1,126 @@
+/* ✅ ضبط الخطوط والألوان */
+body {
+    font-family: 'Tajawal', Arial, sans-serif;
+    background-color: #f8f9fa;
+    text-align: center;
+    direction: rtl;
+    margin: 0;
+    padding: 20px;
+}
+
+/* ✅ تحسين تنسيق العناوين */
+h1 {
+    color: #333;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* ✅ تحسين مظهر القائمة المنسدلة */
+label {
+    font-size: 18px;
+    font-weight: bold;
+    color: #555;
+}
+
+select {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: white;
+    color: #333;
+    transition: 0.3s;
+}
+
+select:hover {
+    border-color: #ff9800;
+}
+
+/* ✅ تحسين تنسيق الجدول */
+table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* ✅ تحسين مظهر العناوين */
+th {
+    background-color: #ff9800; /* ✅ اللون البرتقالي الأساسي */
+    color: white;
+    font-size: 18px;
+    padding: 12px;
+}
+
+td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    font-size: 16px;
+    color: #555;
+}
+
+/* ✅ تحسين التباعد والتنسيق */
+td:first-child {
+    font-weight: bold;
+    color: #333;
+}
+
+/* ✅ إضافة تأثير عند المرور على الصفوف */
+tbody tr:hover {
+    background-color: #fce5cd;
+    transition: 0.3s;
+}
+
+/* ✅ صف الإجمالي في الجدول */
+tfoot td {
+    font-weight: bold;
+    background-color: #ffcc80;
+    color: #333;
+}
+
+/* ✅ تحسين مظهر الأزرار */
+button {
+    margin-top: 20px;
+    padding: 12px 20px;
+    font-size: 18px;
+    color: white;
+    background-color: #ff9800;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #e68900;
+}
+
+/* ✅ تنسيق جدول الإجمالي */
+.summary-table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.summary-table th {
+    background-color: #ff9800;
+    color: white;
+    font-size: 18px;
+    padding: 12px;
+}
+
+.summary-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+
+}
