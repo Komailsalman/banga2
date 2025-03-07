@@ -52,12 +52,10 @@ th {
     background-color: #ff9800; /* ✅ اللون البرتقالي الأساسي */
     color: white;
     font-size: 18px;
-    padding: 12px;
 }
 
 td {
     border: 1px solid #ddd;
-    padding: 12px;
     font-size: 16px;
     color: #555;
 }
