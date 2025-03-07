@@ -112,7 +112,9 @@
 
                 let row = `<tr>
     <td>${juice.name}</td>
-    <td style="color: ${juice.sales === juice.stock ? 'red' : 'black'};">${juice.sales} علبة</td>
+    <td style="background-color: ${juice.sales === juice.stock ? 'red' : 'transparent'}; color: ${juice.sales === juice.stock ? 'white' : 'black'};">
+        ${juice.sales} علبة
+    </td>
     <td>${juice.stock} علبة</td>
 </tr>`;
                 tableBody.innerHTML += row;
