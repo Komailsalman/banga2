@@ -138,22 +138,10 @@
     </script>
 </head>
 <body>
-    <h1>تقرير مبيعات عربة بنقا - رمضان ١٤٤٦</h1>
+    <h1>تقرير مبيعات عربة بنقا</h1>
 
     <label for="dateFilter">اختر التاريخ:</label>
     <select id="dateFilter" onchange="loadReports()"></select>
-
-    <table>
-        <thead>
-            <tr>
-                <th>العصير</th>
-                <th>المبيعات</th>
-                <th>المخزون</th>
-            </tr>
-        </thead>
-        <tbody id="reportsTableBody"></tbody>
-        <tfoot id="reportsTableFooter"></tfoot> <!-- ✅ صف الإجمالي -->
-    </table>
 
     <!-- ✅ جدول إجمالي المبيعات -->
     <table class="summary-table">
@@ -174,6 +162,18 @@
             </tr>
         </tbody>
     </table>
+    <table>
+        <thead>
+            <tr>
+                <th>العصير</th>
+                <th>المبيعات</th>
+                <th>المخزون</th>
+            </tr>
+        </thead>
+        <tbody id="reportsTableBody"></tbody>
+        <tfoot id="reportsTableFooter"></tfoot> <!-- ✅ صف الإجمالي -->
+    </table>
+
 
     <button onclick="loadReports()">تحديث البيانات</button>
 </body>
