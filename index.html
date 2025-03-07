@@ -1,256 +1,180 @@
-
-
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js"></script>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عصيرات بنقا</title>
-    <link rel="stylesheet" href="styles2.css">
-    
+    <title>تقرير مبيعات عربة بنقا - رمضان ١٤٤٦</title>
+    <link rel="stylesheet" href="style.css"> <!-- ✅ استدعاء ملف CSS الخارجي -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPKXE6zCr3HyzRDsIxl-ATVPUEh0SAJxA",
+            authDomain: "ramadan-5f642.firebaseapp.com",
+            projectId: "ramadan-5f642",
+            storageBucket: "ramadan-5f642.appspot.com",
+            messagingSenderId: "101409594426",
+            appId: "1:101409594426:web:9fba27dea7c542056ea903"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const juicesMap = {
+            "1": "عرايسي",
+            "2": "عوار قلب",
+            "3": "منقا أفوكادو",
+            "4": "فبراير",
+            "5": "شمندر رمان",
+            "6": "ليمون نعناع",
+            "7": "نعنشة",
+            "8": "رمان",
+            "9": "برتقال",
+            "10": "رمان ليمون نعناع"
+        };
+
+        function generateDateOptions() {
+            let dateDropdown = document.getElementById("dateFilter");
+            let today = new Date();
+            let todayStr = today.toISOString().split('T')[0];
+            let startDate = new Date("2025-03-02");
+            let endDate = new Date("2025-03-31");
+
+            while (startDate <= endDate) {
+                let dateStr = startDate.toISOString().split('T')[0];
+                let option = document.createElement("option");
+                option.value = dateStr;
+                option.textContent = dateStr;
+                if (dateStr === todayStr) {
+                    option.selected = true;
+                }
+                dateDropdown.appendChild(option);
+                startDate.setDate(startDate.getDate() + 1);
+            }
+        }
+
+        async function loadReports() {
+            let tableBody = document.getElementById("reportsTableBody");
+            let tableFooter = document.getElementById("reportsTableFooter");
+            tableBody.innerHTML = "";
+            tableFooter.innerHTML = "";
+
+            let totalSales = 0;
+            let totalStock = 0;
+            let totalRevenue = 0;
+
+            let selectedDate = document.getElementById("dateFilter").value;
+            let dayOnly = selectedDate.split("-")[2];
+
+            const stockDoc = await getDoc(doc(db, "stock", dayOnly));
+            let stockData = stockDoc.exists() ? stockDoc.data().stockData : {};
+
+            let salesData = {};
+            const ordersSnapshot = await getDocs(collection(db, "orders"));
+            ordersSnapshot.forEach((doc) => {
+                let order = doc.data();
+
+                if (order.timestamp) {
+                    let orderDate = new Date(order.timestamp.seconds * 1000).toISOString().split('T')[0];
+                    if (orderDate !== selectedDate) return;
+                }
+
+                if (order.items && Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        if (item.juice && item.juice.id) {
+                            let juiceId = item.juice.id.toString();
+                            let quantity = item.quantity || 0;
+                            let price = item.juice.price || 0;
+
+                            if (juicesMap[juiceId]) {
+                                let juiceName = juicesMap[juiceId];
+                                salesData[juiceName] = (salesData[juiceName] || 0) + quantity;
+                                totalRevenue += quantity * price;
+                            }
+                        }
+                    });
+                }
+            });
+
+            let sortedJuices = Object.keys(juicesMap)
+                .map(id => ({
+                    id,
+                    name: juicesMap[id],
+                    sales: salesData[juicesMap[id]] || 0,
+                    stock: stockData[id] || 0
+                }))
+                .sort((a, b) => b.sales - a.sales); // ✅ ترتيب العصيرات حسب الأكثر مبيعًا
+
+            sortedJuices.forEach(juice => {
+                totalSales += juice.sales;
+                totalStock += juice.stock;
+
+                let row = `<tr>
+                    <td>${juice.name}</td>
+                    <td>${juice.sales} علبة</td>
+                    <td>${juice.stock} علبة</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+
+            let footerRow = `<tr>
+                <td><strong>الإجمالي</strong></td>
+                <td><strong>${totalSales} علبة</strong></td>
+                <td><strong>${totalStock} علبة</strong></td>
+            </tr>`;
+            tableFooter.innerHTML = footerRow;
+
+            document.getElementById("totalSales").innerText = totalSales;
+            document.getElementById("totalRevenue").innerText = totalRevenue.toLocaleString() + " ريال";
+        }
+
+        window.onload = function() {
+            generateDateOptions();
+            loadReports();
+        };
+
+        window.loadReports = loadReports;
+    </script>
 </head>
-<!-- رابط CSS لـ SweetAlert2 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
-<!-- رابط JavaScript لـ SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <body>
-    <div class="full-width-message" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; color: white; height: 60px; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;">
-       
+    <h1>تقرير مبيعات عربة بنقا - رمضان ١٤٤٦</h1>
 
-        <img src="https://i.postimg.cc/g2GmHSFp/bangalogo.png" alt="شعار بنقا" style="height: 60px; filter: invert(100%);position: absolute; right: 400px;">
-    
+    <label for="dateFilter">اختر التاريخ:</label>
+    <select id="dateFilter" onchange="loadReports()"></select>
 
-        <span style="font-size: 25px; font-weight:100; margin: 0 auto; text-align: center;">نظام كاشير عصيرات بنقا - الحسا تركض</span>
-        <button onclick="sendCutCommand()" class="custom-button">قطع الورق</button>
-<button onclick="printLastOrder()" class="custom-button">قطع الورق والطباعة</button>
-<button onclick="window.location.href='saved-orders2.html'" class="custom-button">عرض الطلبات السابقة</button>
-<button id="print-order-btn" class="custom-button">طباعة طلب سابق</button>
-<button onclick="addCustomPriceProduct1()" class="custom-button">إضافة منتج مخصص</button>
-<button onclick="printDirectlyWithDate()" class="custom-button">تسجيل وطباعة طلب بتاريخ محدد</button>
+    <table>
+        <thead>
+            <tr>
+                <th>العصير</th>
+                <th>المبيعات</th>
+                <th>المخزون</th>
+            </tr>
+        </thead>
+        <tbody id="reportsTableBody"></tbody>
+        <tfoot id="reportsTableFooter"></tfoot> <!-- ✅ صف الإجمالي -->
+    </table>
 
-    </div>
-    
+    <!-- ✅ جدول إجمالي المبيعات -->
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th>الإجمالي</th>
+                <th>القيمة</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>إجمالي العلب المباعة</td>
+                <td><span id="totalSales">0</span> علبة</td>
+            </tr>
+            <tr>
+                <td>إجمالي المبيعات</td>
+                <td><span id="totalRevenue">0</span></td>
+            </tr>
+        </tbody>
+    </table>
 
-    
-    <header>
-        <div style="margin-top: 90px;" class="container">
-            <!-- القسم الرئيسي -->
-            <div class="main-content">
-
-        <div class="buttons-container">
-            <table class="buttons-table">
-                <th colspan="8" id="custom-row" style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;"> الخلطات </th>  
-                    </tr>
-                    <tr>
-                        <td><button class="add-btn" onclick="addToTable('خلطة بنقا', 18)">خلطة بنقا</button></td>
-                        <td><button class="add-btn" onclick="addToTable('عرايسي', 17)">عرايسي</button></td>
-                        <td><button class="add-btn" onclick="addToTable('أمواج', 17)">أمواج</button></td>
-                        <td><button class="add-btn" onclick="addToTable('عوار قلب', 17)">عوار قلب</button></td>
-                        <td><button class="add-btn" onclick="addToTable('باور', 17)">باور</button></td>
-                        <td><button class="add-btn" onclick="addToTable('منقا افوكادو', 17)">منقا افوكادو</button></td>
-                    </tr>
-                    <tr>
-                <tr>
-                    <tr>
-                        <th colspan="8" id="custom-row" style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;">المنعشة</th>
-                       
-        
-                </tr>
-                <tr>
-                        <td><button class="add-btn" onclick="addToTable('نعنشة', 16)">نعنشة</button></td>
-                        <td><button class="add-btn" onclick="addToTable('حامض حلو', 16)">حامض حلو</button></td>
-                        <td><button class="add-btn" onclick="addToTable('ليمون نعناع', 14)">ليمون نعناع</button></td>
-                        <td><button class="add-btn" onclick="addToTable('منقا اناناس', 16)">منقا اناناس</button></td>
-                        <td><button class="add-btn" onclick="addToTable('برتقال أناناس', 16)">برتقال أناناس</button></td>
-                        <td><button class="add-btn" onclick="addToTable('رمان أناناس ', 16)">رمان أناناس</button></td>
-                        <td><button class="add-btn" onclick="addToTable('برتقال رمان', 14)">برتقال رمان</button></td>
-                        <td><button class="add-btn" onclick="addToTable('مانجو فراولة', 17)">مانجو فراولة</button></td>
-
-
-                    </tr>
-            
-                    <tr>
-                        <td><button class="add-btn" onclick="addToTable('شمندر برتقال رمان', 15)">شمندر برتقال رمان</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر رمان', 14)">شمندر رمان</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر برتقال', 14)">شمندر برتقال</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر تفاح', 15)">شمندر تفاح</button></td>
-                        <tr>
-                            <th colspan="8"id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;">فواكه وآيسكريم  </th>  
-                    </tr>
-                    <tr>
-
-                        <td><button class="add-btn" onclick="addToTable('فراولة مكسيكي', 15)">فراولة مكسيكي</button></td>
-                        <td><button class="add-btn" onclick="addToTable('مانجو مكسيكي', 18)">مانجو مكسيكي</button></td>
-                        <td><button class="add-btn" onclick="addToTable('آيسكريم فانيلا', 9)">آيسكريم فانيلا</button></td>
-                        <td><button class="add-btn" onclick="addToTable('بركان مكس ', 19)">بركان مكس </button></td>
-                        <td><button class="add-btn" onclick="addToTable('بركان البنقا', 18)">بركان البنقا</button></td>
-                        <td><button class="add-btn" onclick="addToTable('بركان الفراولة', 18)">بركان الفراولة</button></td>
-                    
-                        <td><button class="add-btn" onclick="addToTable('فواكه مشكلة كبير', 29)">فواكه مشكلة كبير</button></td>
-                        <td><button class="add-btn" onclick="addToTable('فواكه مشكلة صغير', 21)">فواكه مشكلة صغير</button></td>
-
-                        <tr>
-                            <th colspan="8" id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 5px;">عصاير طبيعية   </th>  
-                    </tr>
-                    <tr>
-
-                        <td><button class="add-btn" onclick="addToTable('موز', 14)">موز</button></td>
-                        <td><button class="add-btn" onclick="addToTable('افوكادو', 16)">افوكادو</button></td>
-                        <td><button class="add-btn" onclick="addToTable('شمندر', 14)">شمندر</button></td>
-                        <td><button class="add-btn" onclick="addToTable('ليمون', 14)">ليمون</button></td>
-                        <td><button class="add-btn" onclick="addToTable('موز حليب', 14)">موز حليب</button></td>
-                        <td><button class="add-btn" onclick="addToTable('جزر', 14)">جزر</button></td>
-                        <td><button class="add-btn" onclick="addToTable('اناناس', 16)">اناناس</button></td>
-                        <td><button class="add-btn" onclick="addToTable('عصير تفاح', 13)">عصير تفاح</button></td>
-
-                    </tr>
-                    <tr>
-                        <td><button class="add-btn" onclick="addToTable('عصير فراولة', 16)">عصير فراولة</button></td>
-                        <td><button class="add-btn" onclick="addToTable('عصير مانجو', 16)">عصير مانجو</button></td>
-                        <td><button class="add-btn" onclick="addToTable('عصير رمان', 14)">عصير رمان</button></td>
-                        <td><button class="add-btn" onclick="addToTable('عصير برتقال', 13)">عصير برتقال</button></td>
-                        <tr>
-                           
-                        <tr>
-                            
-
-                            <th colspan="4" id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 10px;"  >مشروبات ساخنة   </th>  
-                            <th colspan="4" id="custom-row"style="background-color: #41a0be; color: white; font-weight: bold; text-align: center; font-size: 16px; padding: 10px; border-radius: 10px;"  >مشروبات باردة   </th>  
-                        </tr>
-                        <tr>
-    
-                            <td><button class="add-btn" onclick="addToTable('شوكولاته ساخنة', 12)">شوكولاته ساخنة</button></td>
-                            <td><button class="add-btn" onclick="addToTable('سحلب', 11)">سحلب</button></td>
-                            <td><button class="add-btn" onclick="addToTable('محلبيه', 11)">محلبيه</button></td>
-                            <td></td>
-
-
-                            <td><button class="add-btn" onclick="addToTable('كركديه سادة', 14)">كركديه سادة</button></td>
-                            <td><button class="add-btn" onclick="addToTable('كركديه بالنعناع', 15)">كركديه بالنعناع</button></td>
-                            <td><button class="add-btn" onclick="addToTable('شاي بارد بالمانجو', 14)">شاي بارد بالمانجو</button></td>
-                            <td><button class="add-btn" onclick="addToTable('شاي بارد بالخوخ', 14)">شاي بارد بالخوخ</button></td>
-                          
-
-                            <tr>
-
-                            
-                           
-                    <!-- القسم الرئيسي 
-
-                </tr>
-                <tr>
-                    <td colspan="4"><button1 class="clear-btn" onclick="clearTable()">محو الجدول</button1></td>
-                    <td colspan="4"><button1 class="print-btn" onclick="printAndClear()">طباعة جدول الطلبات</button1></td>
-                </tr>
-                -->
-            </table>
-        </div>
-    </div>
-
-    <aside class="sidebar" >
-        <h2>الملخص</h2>
-      <!-- القسم الرئي  <button onclick="resetOrderNumber()">تجديد رقم الطلب</button>     -->
-
-        <ul>
-            <table id="order-table"class="custom-order-table">
-                <thead>
-                    <tr>
-                        <th colspan="4" style ="background-color: #dadada;">رقم الطلب: <span id="order-number">1</span></th>
-                    </tr>
-                    <tr>
-                        <th>العدد</th> 
-                        <th class="product-name">المنتج</th>
-                        <th>السعر</th>
-                        
-                        <th class="no-print">+ / - </th>
-                    </tr>
-                </thead>
-                
-                <tbody id="product-table-body">
-                    <!-- الطلبات ستضاف هنا -->
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" id="total-row">الإجمالي: <span id="total-price">0 ريال</span></td>
-                    </tr>
-                </tfoot>
-                
-            </table>
-           
-            <td><button class="clear-btn" onclick="clearTable()"> حذف كامل الطلب </button></td>
-            <!-- كاش  <td><button class="print-btn" onclick="printAndClear()"> دفع </button></td>-->
-            <td>  <button class="print-btn" onclick="printDirectly()">دفع</button> </td>
-            
-            
-            
-            
-            <div class="payment-options" style="text-align: center;">
-                <h3>طريقة الدفع</h3>
-            
-         <!-- مدى -->
-<div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
-    <label style="font-size: 18px; margin-right: 10px; font-weight: bolder;">مدى:</label>
-    <input type="text" id="mada-amount" placeholder="أدخل مبلغ مدى"
-    autocomplete="off" 
-    style="width: 40%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
-    <button onclick="setFullAmountToMada()"
-            style="padding: 10px; font-size: 16px; background-color: #3da3ba; color: white; border: none; border-radius: 5px; cursor: pointer; width: 90px; height: 60px; text-align: center; line-height: 20px;">
-        كامل<br>المبلغ
-    </button>
-</div>
-
-<!-- كاش -->
-<div style="margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
-    <label style="font-size: 18px; margin-right: 10px; font-weight: bolder;">كاش:</label>
-    <input type="text" id="cash-amount" placeholder="أدخل مبلغ كاش"
-    autocomplete="off" 
-    style="width: 40%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
-    <button onclick="setFullAmountToCash()"
-            style="padding: 10px; font-size: 16px; background-color: #3da3ba; color: white; border: none; border-radius: 5px; cursor: pointer; width: 90px; height: 60px; text-align: center; line-height: 20px;">
-        كامل<br>المبلغ
-    </button>
-</div>
-
-            
-          
-<div id="remaining-message" style="text-align: center; font-size: 16px; margin-top: 10px; color: green;"></div>
-
-
-
-            
-        </ul>
-    </aside>
-    </div>
-    
-
-
-
-    
-   
-    <script src="script2.js"></script>
+    <button onclick="loadReports()">تحديث البيانات</button>
 </body>
 </html>
-
-
-
-
-   <!-- الطلبات ستضاف هنا 
-
-
-<div style="margin-top: 20px; text-align: center;">
-    <h3>اختيار طريقة الدفع</h3>
-    <button onclick="selectPaymentMethod('مدى')" class="payment-button">مدى</button>
-    <button onclick="selectPaymentMethod('كاش')" class="payment-button">كاش</button>
-    <div id="mada-input-container" style="display: none; margin-top: 10px;">
-        <label for="mada-amount">المبلغ المدفوع عبر مدى:</label>
-        <input type="number" id="mada-amount" min="0" step="0.01" style="padding: 5px; width: 100px;">
-    </div>
-</div>
--->
