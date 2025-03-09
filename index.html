@@ -131,9 +131,43 @@
             document.getElementById("totalRevenue").innerText = totalRevenue.toLocaleString() + " ريال";
         }
 
+
+        
+        async function loadTotalSales() {
+    let totalSalesTableBody = document.getElementById("totalSalesTableBody");
+    totalSalesTableBody.innerHTML = "";
+
+    let totalRevenue = 0;
+
+    const ordersSnapshot = await getDocs(collection(db, "orders"));
+    ordersSnapshot.forEach((doc) => {
+        let order = doc.data();
+
+        if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+                let quantity = item.quantity || 0;
+                let price = item.juice.price || 0;
+                totalRevenue += quantity * price;
+            });
+        }
+    });
+
+    // ✅ إضافة صف إجمالي جميع الأيام
+    let totalRow = `<tr>
+        <td><strong>إجمالي المبيعات لجميع الأيام</strong></td>
+        <td><strong>${totalRevenue.toLocaleString()} ريال</strong></td>
+    </tr>`;
+    totalSalesTableBody.innerHTML += totalRow;
+}
+
+
+
+
         window.onload = function() {
             generateDateOptions();
             loadReports();
+            loadTotalSales(); // ✅ تحميل إجمالي المبيعات عند تشغيل الموقع
+
         };
 
         window.loadReports = loadReports;
@@ -174,6 +208,24 @@
         </thead>
         <tbody id="reportsTableBody"></tbody>
         <tfoot id="reportsTableFooter"></tfoot> <!-- ✅ صف الإجمالي -->
+
+
+        
+
+    <h2>إجمالي المبيعات لجميع الأيام</h2>
+<table>
+    <thead>
+        <tr>
+            <th>الإجمالي</th>
+            <th>المبلغ (ريال)</th>
+        </tr>
+    </thead>
+    <tbody id="totalSalesTableBody"></tbody>
+</table>
+
+
+
+        
     </table>
 
 
