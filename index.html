@@ -206,29 +206,43 @@ async function loadWeeklySummary() {
 
     const ordersSnapshot = await getDocs(collection(db, "orders"));
     const weekdays = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-    let dayCounts = {
-        "الأحد": 0,
-        "الاثنين": 0,
-        "الثلاثاء": 0,
-        "الأربعاء": 0,
-        "الخميس": 0,
-        "الجمعة": 0,
-        "السبت": 0
-    };
+
+    let dayCounts = {};
+    let dayDates = {};
+
+    weekdays.forEach(day => {
+        dayCounts[day] = 0;
+        dayDates[day] = new Set();
+    });
 
     ordersSnapshot.forEach((doc) => {
         let order = doc.data();
         if (!order.timestamp || !order.items) return;
 
         let date = new Date(order.timestamp.seconds * 1000);
-        let dayName = weekdays[date.getDay()]; // getDay(): 0 (Sunday) to 6 (Saturday)
+        let dayName = weekdays[date.getDay()];
+        let dateStr = date.toISOString().split('T')[0];
 
         order.items.forEach(item => {
             let quantity = item.quantity || 0;
             dayCounts[dayName] += quantity;
         });
+
+        dayDates[dayName].add(dateStr);
     });
 
+    Object.entries(dayCounts)
+        .filter(([_, count]) => count > 0)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([day, count]) => {
+            let daysCount = dayDates[day].size;
+            let row = `<tr>
+                <td>${day} (${daysCount})</td>
+                <td>${count} علبة</td>
+            </tr>`;
+            weeklyTableBody.innerHTML += row;
+        });
+}
     // ✅ ترتيب الأيام حسب العدد نزولاً
 Object.entries(dayCounts)
     .filter(([_, count]) => count > 0)
