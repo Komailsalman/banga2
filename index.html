@@ -229,14 +229,16 @@ async function loadWeeklySummary() {
         });
     });
 
-    weekdays.forEach(day => {
-        if (dayCounts[day] > 0) {
-            let row = `<tr>
-                <td>${day}</td>
-                <td>${dayCounts[day]} علبة</td>
-            </tr>`;
-            weeklyTableBody.innerHTML += row;
-        }
+    // ✅ ترتيب الأيام حسب العدد نزولاً
+Object.entries(dayCounts)
+    .filter(([_, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1]) // ترتيب تنازلي
+    .forEach(([day, count]) => {
+        let row = `<tr>
+            <td>${day}</td>
+            <td>${count} علبة</td>
+        </tr>`;
+        weeklyTableBody.innerHTML += row;
     });
 }
 
