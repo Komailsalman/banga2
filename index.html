@@ -164,12 +164,47 @@
 
 
 
-        window.onload = function() {
+        
+
+async function loadTopJuices() {
+    let topJuicesTableBody = document.getElementById("topJuicesTableBody");
+    topJuicesTableBody.innerHTML = "";
+
+    let juiceSales = {};
+
+    const ordersSnapshot = await getDocs(collection(db, "orders"));
+    ordersSnapshot.forEach((doc) => {
+        let order = doc.data();
+
+        if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+                let juiceId = item.juice.id.toString();
+                let quantity = item.quantity || 0;
+                juiceSales[juiceId] = (juiceSales[juiceId] || 0) + quantity;
+            });
+        }
+    });
+
+    let sortedJuices = Object.entries(juiceSales)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // أعلى ٥ فقط
+
+    sortedJuices.forEach(([id, qty]) => {
+        let row = `<tr>
+            <td>${juicesMap[id] || id}</td>
+            <td>${qty} علبة</td>
+        </tr>`;
+        topJuicesTableBody.innerHTML += row;
+    });
+}
+
+window.onload = function() {
             generateDateOptions();
             loadReports();
             loadTotalSales(); // ✅ تحميل إجمالي المبيعات عند تشغيل الموقع
-
+loadTopJuices(); 
         };
+
 
         window.loadReports = loadReports;
     </script>
@@ -229,7 +264,16 @@
         
     </table>
 
-
+<h2>أعلى ٥ عصيرات مبيعًا</h2>
+<table>
+    <thead>
+        <tr>
+            <th>العصير</th>
+            <th>العدد</th>
+        </tr>
+    </thead>
+    <tbody id="topJuicesTableBody"></tbody>
+</table>
 
 </body>
 </html>
