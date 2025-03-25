@@ -198,11 +198,57 @@ async function loadTopJuices() {
     });
 }
 
+
+
+async function loadWeeklySummary() {
+    let weeklyTableBody = document.getElementById("weeklySummaryTableBody");
+    weeklyTableBody.innerHTML = "";
+
+    const ordersSnapshot = await getDocs(collection(db, "orders"));
+    const weekdays = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    let dayCounts = {
+        "الأحد": 0,
+        "الاثنين": 0,
+        "الثلاثاء": 0,
+        "الأربعاء": 0,
+        "الخميس": 0,
+        "الجمعة": 0,
+        "السبت": 0
+    };
+
+    ordersSnapshot.forEach((doc) => {
+        let order = doc.data();
+        if (!order.timestamp || !order.items) return;
+
+        let date = new Date(order.timestamp.seconds * 1000);
+        let dayName = weekdays[date.getDay()]; // getDay(): 0 (Sunday) to 6 (Saturday)
+
+        order.items.forEach(item => {
+            let quantity = item.quantity || 0;
+            dayCounts[dayName] += quantity;
+        });
+    });
+
+    weekdays.forEach(day => {
+        if (dayCounts[day] > 0) {
+            let row = `<tr>
+                <td>${day}</td>
+                <td>${dayCounts[day]} علبة</td>
+            </tr>`;
+            weeklyTableBody.innerHTML += row;
+        }
+    });
+}
+
+
+
+
 window.onload = function() {
             generateDateOptions();
             loadReports();
-            loadTotalSales(); // ✅ تحميل إجمالي المبيعات عند تشغيل الموقع
+            loadTotalSales(); 
 loadTopJuices(); 
+loadWeeklySummary();
         };
 
 
@@ -274,6 +320,26 @@ loadTopJuices();
     </thead>
     <tbody id="topJuicesTableBody"></tbody>
 </table>
+
+
+
+
+
+
+<h2>إجمالي عدد العصيرات حسب يوم الأسبوع</h2>
+<table>
+    <thead>
+        <tr>
+            <th>اليوم</th>
+            <th>عدد العصيرات</th>
+        </tr>
+    </thead>
+    <tbody id="weeklySummaryTableBody"></tbody>
+</table>
+
+
+
+
 
 </body>
 </html>
