@@ -286,6 +286,7 @@ async function loadStockDetails() {
         let row = `<tr>
             <td>${juiceName}</td>
             <td>${totalStock} علبة</td>
+            <td>${totalSales} علبة</td> <!-- ✅ عرض المبيعات -->
             <td>${remaining} علبة</td>
         </tr>`;
         tableBody.innerHTML += row;
@@ -396,6 +397,7 @@ loadStockDetails();
     <tr>
       <th>العصير</th>
       <th>إجمالي المخزون</th>
+      <th>المبيعات</th> <!-- ✅ العمود الجديد -->
       <th>إجمالي المتبقي</th>
     </tr>
   </thead>
