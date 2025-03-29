@@ -244,7 +244,53 @@ async function loadWeeklySummary() {
         });
 }
 
+async function loadStockDetails() {
+    let tableBody = document.getElementById("stockDetailsTableBody");
+    tableBody.innerHTML = "";
 
+    // تهيئة العدادات
+    let totalStockByJuice = {};
+    let totalSalesByJuice = {};
+
+    // تحميل جميع بيانات المخزون
+    const stockDocs = await getDocs(collection(db, "stock"));
+    stockDocs.forEach((docSnap) => {
+        const data = docSnap.data();
+        const stockData = data.stockData || {};
+
+        for (let juiceId in stockData) {
+            totalStockByJuice[juiceId] = (totalStockByJuice[juiceId] || 0) + stockData[juiceId];
+        }
+    });
+
+    // تحميل جميع الطلبات
+    const ordersSnapshot = await getDocs(collection(db, "orders"));
+    ordersSnapshot.forEach((doc) => {
+        let order = doc.data();
+        if (!order.items) return;
+
+        order.items.forEach(item => {
+            let juiceId = item.juice.id.toString();
+            let quantity = item.quantity || 0;
+            totalSalesByJuice[juiceId] = (totalSalesByJuice[juiceId] || 0) + quantity;
+        });
+    });
+
+    // تجهيز الجدول
+    for (let juiceId in totalStockByJuice) {
+        let juiceName = juicesMap[juiceId] || juiceId;
+        let totalStock = totalStockByJuice[juiceId] || 0;
+        let totalSales = totalSalesByJuice[juiceId] || 0;
+        let remaining = totalStock - totalSales;
+
+        let row = `<tr>
+            <td>${juiceName}</td>
+            <td>${totalStock} علبة</td>
+            <td>${remaining} علبة</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+    }
+}
 
 
 window.onload = function() {
@@ -253,6 +299,8 @@ window.onload = function() {
             loadTotalSales(); 
 loadTopJuices(); 
 loadWeeklySummary();
+
+loadStockDetails();
         };
 
 
@@ -342,7 +390,17 @@ loadWeeklySummary();
 </table>
 
 
-
+<h2>تفاصيل المخزون لكل عصير</h2>
+<table>
+  <thead>
+    <tr>
+      <th>العصير</th>
+      <th>إجمالي المخزون</th>
+      <th>إجمالي المتبقي</th>
+    </tr>
+  </thead>
+  <tbody id="stockDetailsTableBody"></tbody>
+</table>
 
 
 </body>
